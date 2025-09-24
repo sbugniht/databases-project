@@ -25,7 +25,7 @@ CREATE TABLE login(
     FOREIGN KEY (USER_ID) REFERENCES Visitor(USER_ID)
 );
 
-    CREATE TABLE Admin(
+CREATE TABLE Admin(
     USER_ID INT,
     PRIMARY KEY (USER_ID)
 );
@@ -33,33 +33,15 @@ CREATE TABLE login(
 --Parent entity: flights
 CREATE TABLE flights (
     flight_id INT PRIMARY KEY,
-    airport_id INT NOT NULL,
+    Aairport_id INT NOT NULL,
+    Dairport_id INT NOT NULL,
     plane_id INT NOT NULL,
     plane_status VARCHAR(20) NOT NULL,
     FOREIGN KEY (plane_id) REFERENCES plane(plane_id),
-    FOREIGN KEY (airport_id) REFERENCES Airport(airport_id)
+    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
+    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
 );
 
-CREATE TABLE International_flight(
-    flight_id INT,
-    airport_id INT,
-    plane_id INT,
-    plane_status CHAR,
-    
-
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (airport_id) REFERENCES Airport(airport_id),
-    
-);
-CREATE TABLE national_flight(
-    light_id INT,
-    airport_id INT,
-    plane_id INT,
-    plane_status CHAR,
-
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (airport_id) REFERENCES Airport(airport_id),
-);
 
 -- Child entity: dom_flight (Domestic Flight)
 CREATE TABLE dom_flight (
