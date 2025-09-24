@@ -1,33 +1,67 @@
 CREATE TABLE Plane(
     plane_id INT,
+
     PRIMARY KEY (plane_id)
     
 );
-CREATE TABLE City(
-    city_name CHAR, 
-    airports ARRAY
-    PRIMARY KEY (city_name)
+CREATE TABLE Commercial(
+    plane_id INT,
+    seats INT,
+    
+    PRIMARY KEY (plane_id),
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+
 );
+
+CREATE TABLE Tickets(
+    seat_id INT,
+    booked INT,
+    
+);
+
+CREATE TABLE economy(
+    price INT,
+    seat_id INT,
+    booked INT,
+    FOREIGN KEY (seat_id) REFERENCES Tickets(seat_id),
+    FOREIGN KEY (booked) REFERENCES Tickets(booked)
+);
+
+CREATE TABLE business(
+    price INT,
+    seat_id INT,
+    booked INT,
+    FOREIGN KEY (seat_id) REFERENCES Tickets(seat_id),
+    FOREIGN KEY (booked) REFERENCES Tickets(booked)
+);
+
+CREATE TABLE firstClass(
+    price INT,
+    seat_id INT,
+    booked INT,
+    FOREIGN KEY (seat_id) REFERENCES Tickets(seat_id),
+    FOREIGN KEY (booked) REFERENCES Tickets(booked)
+);
+
+CREATE TABLE Cargo(
+    plane_id INT,
+
+    PRIMARY KEY (plane_id),
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+);
+
 CREATE TABLE Airport(
     airport_id INT,
     iata CHAR UNIQUE,
+    country VARCHAR(20),
     PRIMARY KEY (airport_id)
 );
 
-CREATE TABLE Visitor(
-    USER_ID INT,
-    PRIMARY KEY (USER_ID)
-);
-
-CREATE TABLE login(
+CREATE TABLE registred_user(
     USER_ID INT NOT NULL,
     pwd INT,
-    FOREIGN KEY (USER_ID) REFERENCES Visitor(USER_ID)
-);
-
-CREATE TABLE Admin(
-    USER_ID INT,
-    PRIMARY KEY (USER_ID)
+    privilege INT,
+    
 );
 
 --Parent entity: flights
@@ -46,13 +80,19 @@ CREATE TABLE flights (
 -- Child entity: dom_flight (Domestic Flight)
 CREATE TABLE dom_flight (
     flight_id INT PRIMARY KEY,
-    dom_region VARCHAR(50),
+    dom_fee INT,
     FOREIGN KEY (flight_id) REFERENCES flights(flight_id)
 );
 
 -- Child entity: int_flight (International Flight)
 CREATE TABLE int_flight (
     flight_id INT PRIMARY KEY,
-    country VARCHAR(50),
+    int_fee INT,
     FOREIGN KEY (flight_id) REFERENCES flights(flight_id)
 );
+
+CREATE TABLE fee(
+    dom_fee INT,
+    int_fee INT,
+    country VARCHAR(20)
+)
