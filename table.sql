@@ -1,6 +1,5 @@
 CREATE TABLE Plane(
     plane_id INT,
-
     PRIMARY KEY (plane_id)
     
 );
@@ -57,11 +56,34 @@ CREATE TABLE Airport(
     PRIMARY KEY (airport_id)
 );
 
-CREATE TABLE registred_user(
+CREATE TABLE Users(
     USER_ID INT NOT NULL,
     pwd INT,
     privilege INT,
     
+);
+
+CREATE TABLE customer(
+    USER_ID INT NOT NULL,
+    pwd INT,
+    privilege INT,
+    bookedFlights ARRAY,
+    FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID),
+    FOREIGN KEY (pwd) REFERENCES Users(pwd),
+    FOREIGN KEY (privilege) REFERENCES Users(privilege)
+
+);
+
+CREATE TABLE Admin (
+    USER_ID INT NOT NULL,
+    pwd INT,
+    privilege INT,
+    last_login TIMESTAMP,
+    FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID),
+    FOREIGN KEY (pwd) REFERENCES Users(pwd),
+    FOREIGN KEY (privilege) REFERENCES Users(privilege)
+
+
 );
 
 --Parent entity: flights
