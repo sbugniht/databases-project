@@ -8,14 +8,14 @@ CREATE TABLE Fee(
 
 --Parent entity: Plane
 CREATE TABLE Plane(
-    plane_id INT,
-    PRIMARY KEY (plane_id)
+    plane_id INT PRIMARY KEY,
+    
     
 );
 
 -- child entity: Cargo (plane)
 CREATE TABLE Cargo(
-    plane_id INT PRIMARY KEY,
+    plane_id INT PRIMARY KEY
     FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
 );
 
@@ -23,7 +23,7 @@ CREATE TABLE Cargo(
 CREATE TABLE Commercial(
     plane_id INT,
     seats INT, -- total number of bookable seats of the specific airplane   
-    PRIMARY KEY (plane_id),
+    PRIMARY KEY (plane_id)
     FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
 
 );
@@ -31,7 +31,7 @@ CREATE TABLE Commercial(
 CREATE TABLE Airport(
     airport_id INT PRIMARY KEY,
     iata CHAR(3) UNIQUE,
-    country VARCHAR(20),
+    country VARCHAR(20) UNIQUE
     FOREIGN KEY country REFERENCES Fee(country)
 );
 
@@ -49,9 +49,9 @@ CREATE TABLE Flights (
     Aairport_id INT NOT NULL, -- arrival airport
     Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
     plane_id INT NOT NULL,
-    plane_status VARCHAR(20) NOT NULL,
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
+    plane_status VARCHAR(20) NOT NULL
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id)
     FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
 );
 
@@ -64,7 +64,7 @@ CREATE TABLE Tickets(
 CREATE TABLE SeatAssignment(
     seat_id INT PRIMARY KEY,
     flight_id INT NOT NULL,
-    class ENUM('Economy','Business','FirstClass') NOT NULL,
+    class ENUM('Economy','Business','FirstClass') NOT NULL
     FOREIGN KEY (flight_id) REFERENCES Flights(flight_id)
 );
 
@@ -72,7 +72,7 @@ CREATE TABLE SeatAssignment(
 CREATE TABLE Economy(
     
     seat_id INT PRIMARY KEY,
-    price INT,
+    price INT
     FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
     
 );
@@ -81,7 +81,7 @@ CREATE TABLE Economy(
 CREATE TABLE Business(
    
     seat_id INT PRIMARY KEY,
-    price INT,
+    price INT
     FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
    
     );
@@ -90,7 +90,7 @@ CREATE TABLE Business(
 CREATE TABLE FirstClass(
    
     seat_id INT PRIMARY KEY,
-    price INT,
+    price INT
     FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
     );
 
@@ -100,10 +100,10 @@ CREATE TABLE Dom_flight (
     Aairport_id INT NOT NULL, -- arrival airport
     Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
     plane_id INT NOT NULL,
-    plane_status VARCHAR(20) NOT NULL,   
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
-    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id),
+    plane_status VARCHAR(20) NOT NULL  
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id)
+    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
     
     
 );
@@ -114,10 +114,10 @@ CREATE TABLE Int_flight (
     Aairport_id INT NOT NULL, -- arrival airport, from the airport we know the country and therefore find the fee amount as well
     Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
     plane_id INT NOT NULL,
-    plane_status VARCHAR(20) NOT NULL,
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
-    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id),
+    plane_status VARCHAR(20) NOT NULL
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id)
+    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
     
     );
 
@@ -126,15 +126,15 @@ CREATE TABLE Bookings (
     user_id INT NOT NULL,
     flight_id INT NOT NULL,
     seat_id INT NOT NULL,
-    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id),
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id)
     FOREIGN KEY (seat_id) REFERENCES Tickets(seat_id)
 );
 
 --child entity: customer
 CREATE TABLE Customer(
-    USER_ID INT PRIMARY KEY,
+    USER_ID INT PRIMARY KEY
     FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID)
 
 );
@@ -142,7 +142,7 @@ CREATE TABLE Customer(
 --child entity: admin, can modify flights
 CREATE TABLE Admin (
     USER_ID INT PRIMARY KEY ,
-    last_login TIMESTAMP, -- for security checks on the last access of one admin
+    last_login TIMESTAMP -- for security checks on the last access of one admin
     FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID)
 
 );
