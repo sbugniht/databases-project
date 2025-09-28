@@ -17,7 +17,7 @@ CREATE TABLE Commercial(
 CREATE TABLE Tickets(
     seat_id INT, -- number of seat, from 0 to seats from Commercial 
     booked INT UNIQUE DEFAULT (NULL), -- if NULL not booked, otherwise contains the User_id of the customer who bought it
-    CHECK ( booked = NULL OR booked = Users.USER_ID) 
+    CHECK ( booked = NULL OR booked = 5) 
 );
 --child entity: Economy
 CREATE TABLE economy(
