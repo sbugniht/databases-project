@@ -30,8 +30,8 @@ CREATE TABLE Commercial(
 CREATE TABLE Airport(
     airport_id INT PRIMARY KEY,
     iata CHAR(3) UNIQUE,
-    country VARCHAR(20) UNIQUE,
-    FOREIGN KEY country REFERENCES Fee(country)
+    country VARCHAR(20),
+    FOREIGN KEY (country) REFERENCES Fee(country)
 );
 
 --Parent entity: Users
