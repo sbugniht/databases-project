@@ -15,7 +15,7 @@ CREATE TABLE Plane(
 
 -- child entity: Cargo (plane)
 CREATE TABLE Cargo(
-    plane_id INT PRIMARY KEY
+    plane_id INT PRIMARY KEY,
     FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
 );
 
