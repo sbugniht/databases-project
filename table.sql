@@ -6,6 +6,35 @@ CREATE TABLE Fee(
 
 );
 
+--Parent entity: Plane
+CREATE TABLE Plane(
+    plane_id INT,
+    PRIMARY KEY (plane_id)
+    
+);
+
+-- child entity: Cargo (plane)
+CREATE TABLE Cargo(
+    plane_id INT PRIMARY KEY,
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+);
+
+--child entity: Commercial
+CREATE TABLE Commercial(
+    plane_id INT,
+    seats INT, -- total number of bookable seats of the specific airplane   
+    PRIMARY KEY (plane_id),
+    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
+
+);
+
+CREATE TABLE Airport(
+    airport_id INT PRIMARY KEY,
+    iata CHAR(3) UNIQUE,
+    country VARCHAR(20),
+    FOREIGN KEY country REFERENCES Fee(country)
+);
+
 --Parent entity: Users
 CREATE TABLE Users(
     USER_ID INT PRIMARY KEY,
@@ -26,34 +55,6 @@ CREATE TABLE Flights (
     FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
 );
 
---Parent entity: Plane
-CREATE TABLE Plane(
-    plane_id INT,
-    PRIMARY KEY (plane_id)
-    
-);
-
--- child entity: Cargo (plane)
-CREATE TABLE Cargo(
-    plane_id INT PRIMARY KEY ,
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
-);
-
---child entity: Commercial
-CREATE TABLE Commercial(
-    plane_id INT,
-    seats INT, -- total number of bookable seats of the specific airplane   
-    PRIMARY KEY (plane_id),
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id)
-
-);
-
-CREATE TABLE Airport(
-    airport_id INT PRIMARY KEY,
-    iata CHAR(3) UNIQUE,
-    country VARCHAR(20)
-);
-
 --Parent entity: Tickets
 CREATE TABLE Tickets(
     seat_id INT PRIMARY KEY -- number of seat, from 0 to seats from Commercial 
@@ -69,26 +70,27 @@ CREATE TABLE SeatAssignment(
 
 --child entity: Economy
 CREATE TABLE Economy(
-    price INT,
+    
     seat_id INT PRIMARY KEY,
-   
+    price INT,
     FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
     
 );
 
 --child entity: Business
 CREATE TABLE Business(
-    price INT,
-    seat_id INT PRIMARY KEY,
    
+    seat_id INT PRIMARY KEY,
+    price INT,
     FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
    
     );
 
 --child entity: FirstClass
 CREATE TABLE FirstClass(
-    price INT,
+   
     seat_id INT PRIMARY KEY,
+    price INT,
     FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
     );
 
@@ -98,27 +100,25 @@ CREATE TABLE Dom_flight (
     Aairport_id INT NOT NULL, -- arrival airport
     Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
     plane_id INT NOT NULL,
-    plane_status VARCHAR(20) NOT NULL,
-    dom_fee INT, -- airport contains the country that determines this amount
+    plane_status VARCHAR(20) NOT NULL,   
     FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
     FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
     FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id),
-    FOREIGN KEY (dom_fee) REFERENCES Fee(country)
+    
     
 );
 
 -- Child entity: int_flight (International Flight)
 CREATE TABLE Int_flight (
     flight_id INT PRIMARY KEY,
-    Aairport_id INT NOT NULL, -- arrival airport
+    Aairport_id INT NOT NULL, -- arrival airport, from the airport we know the country and therefore find the fee amount as well
     Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
     plane_id INT NOT NULL,
     plane_status VARCHAR(20) NOT NULL,
-    int_fee INT,
     FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
     FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
     FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id),
-    FOREIGN KEY (int_fee) REFERENCES Fee(country)
+    
     );
 
 CREATE TABLE Bookings (
