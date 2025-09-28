@@ -8,7 +8,7 @@ CREATE TABLE Fee(
 
 --Parent entity: Plane
 CREATE TABLE Plane(
-    plane_id INT PRIMARY KEY,
+    plane_id INT PRIMARY KEY
     
     
 );
