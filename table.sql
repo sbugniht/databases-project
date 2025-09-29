@@ -37,7 +37,7 @@ CREATE TABLE Airport(
 --Parent entity: Users
 CREATE TABLE Users(
     USER_ID INT PRIMARY KEY,
-    pwd INT,
+    pwd VARCHAR(8), -- password
     privilege INT -- allows to differentiate between admin pwd and customer
     
 );
@@ -131,14 +131,14 @@ CREATE TABLE Bookings (
     FOREIGN KEY (seat_id) REFERENCES Tickets(seat_id)
 );
 
---child entity: customer
+--child entity from User: customer
 CREATE TABLE Customer(
     USER_ID INT PRIMARY KEY,
     FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID)
 
 );
 
---child entity: admin, can modify flights
+--child entity from User: admin, can modify flights
 CREATE TABLE Admin (
     USER_ID INT PRIMARY KEY ,
     last_login TIMESTAMP, -- for security checks on the last access of one admin
