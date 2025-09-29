@@ -165,7 +165,7 @@ CREATE TABLE Admin (
 
 );
 
-CREATE view View_Price AS
+/*CREATE view View_Price AS
 SELECT B.booking_id, U.user_id, F.flight_id, S.class,
        CASE S.class
            WHEN 'Economy' THEN E.price
@@ -199,7 +199,29 @@ LEFT JOIN FirstClass Fc ON S.seat_id = Fc.seat_id
 left JOIN Airport A1 ON F.Dairport_id = A1.airport_id
 left JOIN Airport A2 ON F.Aairport_id = A2.airport_id
 left JOIN Fee ON A1.country = Fee.country;
+*/
 
-
-
-
+create view view_costo as
+select Users.user_id, 
+        CASE 
+           WHEN SeatAssignment.class = 'Economy' THEN Economy.price
+           WHEN SeatAssignment.class = 'Business' THEN Business.price
+           WHEN SeatAssignment.class = 'FirstClass' THEN FirstClass.price
+           ELSE 0
+        END AS base_price,
+        Airport.country AS departure_country,
+        Airport2.country AS arrival_country,
+        CASE 
+           WHEN Airport.country = Airport2.country THEN Fee.dom_fee
+           ELSE Fee.int_fee
+        END AS feeamount,
+        (base_price + feeamount) AS total_price
+from Users
+left JOIN SeatAssignment on Users.user_id = Users.user_id
+left JOIN Economy on SeatAssignment.seat_id = Economy.seat_id
+left JOIN Business on SeatAssignment.seat_id = Business.seat_id
+left JOIN FirstClass on SeatAssignment.seat_id = FirstClass.seat_id
+LEFT JOIN Flights on SeatAssignment.flight_id = Flights.flight_id
+left JOIN Airport on Flights.Dairport_id = Airport.airport_id
+left JOIN Airport as Airport2 on Flights.Aairport_id = Airport2.airport_id
+left JOIN Fee on Airport.country = Fee.country;
