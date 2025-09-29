@@ -190,15 +190,15 @@ SELECT B.booking_id, U.user_id, F.flight_id, S.class,
            ELSE Fee.int_fee
        END) AS total_price
 FROM Bookings B
-JOIN Users U ON B.user_id = U.user_id
-JOIN Flights F ON B.flight_id = F.flight_id
-JOIN SeatAssignment S ON B.seat_id = S.seat_id AND B.flight_id = S.flight_id
+LEFT JOIN Users U ON B.user_id = U.user_id
+left JOIN Flights F ON B.flight_id = F.flight_id
+left JOIN SeatAssignment S ON B.seat_id = S.seat_id AND B.flight_id = S.flight_id
 LEFT JOIN Economy E ON S.seat_id = E.seat_id
 LEFT JOIN Business Bz ON S.seat_id = Bz.seat_id
 LEFT JOIN FirstClass Fc ON S.seat_id = Fc.seat_id
-JOIN Airport A1 ON F.Dairport_id = A1.airport_id
-JOIN Airport A2 ON F.Aairport_id = A2.airport_id
-JOIN Fee ON A1.country = Fee.country;
+left JOIN Airport A1 ON F.Dairport_id = A1.airport_id
+left JOIN Airport A2 ON F.Aairport_id = A2.airport_id
+left JOIN Fee ON A1.country = Fee.country;
 
 
 
