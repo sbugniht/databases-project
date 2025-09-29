@@ -83,10 +83,15 @@ insert ignore into Bookings(user_id, flight_id, seat_id) VALUES
 (2, 1, 1),
 (3, 2, 2),
 (2, 3, 3);
-insert ignore into SeatAssignment(seat_id, flight_id, plane_id) VALUES
-(1, 1, 1),
-(2, 2, 2),
-(3, 3, 3);
+insert ignore into SeatAssignment( flight_id, class) VALUES
+(1, "Economy"),
+(2, "Business"),
+(3, "FirstClass"),
+(6, "FirstClass"),
+(7, "Economy"),
+(8, "Business"),
+(9, "FirstClass"),
+(10, "Economy");
 
 insert ignore into Economy(seat_id, price) VALUES
 (1, 150),
