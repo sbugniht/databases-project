@@ -166,11 +166,11 @@ CREATE TABLE Admin (
 );
 
 CREATE view View_Price AS
-SELECT Bookings.booking_id, Users.user_id, Flights.flight_id, SeatAssignment.class,
+SELECT B.booking_id, U.user_id, F.flight_id, S.class,
        CASE S.class
-           WHEN 'Economy' THEN Economy.price
-           WHEN 'Business' THEN Business.price
-           WHEN 'FirstClass' THEN FirstClass.price
+           WHEN 'Economy' THEN E.price
+           WHEN 'Business' THEN Bz.price
+           WHEN 'FirstClass' THEN Fc.price
            ELSE 0
        END AS base_price,
        A1.country AS departure_country,
@@ -180,9 +180,9 @@ SELECT Bookings.booking_id, Users.user_id, Flights.flight_id, SeatAssignment.cla
            ELSE FEE.int_fee
        END AS fee,
        (CASE S.class
-           WHEN 'Economy' THEN Economy.price
-           WHEN 'Business' THEN Business.price
-           WHEN 'FirstClass' THEN FirstClass.price
+           WHEN 'Economy' THEN E.price
+           WHEN 'Business' THEN Bz.price
+           WHEN 'FirstClass' THEN Fc.price
            ELSE 0
        END +
        CASE
