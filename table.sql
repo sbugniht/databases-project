@@ -15,6 +15,7 @@ drop table if exists Commercial;
 drop table if exists Cargo;
 drop table if exists Plane;
 drop table if exists Fee;
+drop view if exists View_Price;
 
 -- used to save the fees by country and calculate the final ticket cost
 CREATE TABLE  Fee(
@@ -164,6 +165,40 @@ CREATE TABLE Admin (
 
 );
 
+CREATE view View_Price AS
+SELECT Bookings.booking_id, Users.user_id, Flights.flight_id, SeatAssignment.class,
+       CASE S.class
+           WHEN 'Economy' THEN Economy.price
+           WHEN 'Business' THEN Business.price
+           WHEN 'FirstClass' THEN FirstClass.price
+           ELSE 0
+       END AS base_price,
+       A1.country AS departure_country,
+       A2.country AS arrival_country,
+       CASE
+           WHEN A1.country = A2.country THEN FEE.dom_fee
+           ELSE FEE.int_fee
+       END AS fee,
+       (CASE S.class
+           WHEN 'Economy' THEN Economy.price
+           WHEN 'Business' THEN Business.price
+           WHEN 'FirstClass' THEN FirstClass.price
+           ELSE 0
+       END +
+       CASE
+           WHEN A1.country = A2.country THEN FEE.dom_fee
+           ELSE FEE.int_fee
+       END) AS total_price
+FROM Bookings B
+JOIN Users U ON B.user_id = U.user_id
+JOIN Flights F ON B.flight_id = F.flight_id
+JOIN SeatAssignment S ON B.seat_id = S.seat_id AND B.flight_id = S.flight_id
+LEFT JOIN Economy E ON S.seat_id = E.seat_id
+LEFT JOIN Business Bz ON S.seat_id = Bz.seat_id
+LEFT JOIN FirstClass Fc ON S.seat_id = Fc.seat_id
+JOIN Airport A1 ON F.Dairport_id = A1.airport_id
+JOIN Airport A2 ON F.Aairport_id = A2.airport_id
+JOIN Fee ON A1.country = Fee.country;
 
 
 
