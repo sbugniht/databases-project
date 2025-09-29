@@ -1,20 +1,20 @@
-drop table if exists Fee;
-drop table if exists Plane;
-drop table if exists Cargo;
-drop table if exists Commercial;
-drop table if exists Airport;
-drop table if exists Users;
-drop table if exists Flights;
-drop table if exists Tickets;
-drop table if exists SeatAssignment;
-drop table if exists Economy;
-drop table if exists Business;
-drop table if exists FirstClass;
-drop table if exists Dom_flight;
-drop table if exists Int_flight;
-drop table if exists Bookings;
-drop table if exists Customer;
 drop table if exists Admin;
+drop table if exists Customer;
+drop table if exists Bookings;
+drop table if exists Int_flight;
+drop table if exists Dom_flight;
+drop table if exists FirstClass;
+drop table if exists Business;
+drop table if exists Economy;
+drop table if exists SeatAssignment;
+drop table if exists Tickets;
+drop table if exists Flights;
+drop table if exists Users;
+drop table if exists Airport;
+drop table if exists Commercial;
+drop table if exists Cargo;
+drop table if exists Plane;
+drop table if exists Fee;
 
 -- used to save the fees by country and calculate the final ticket cost
 CREATE TABLE  Fee(
