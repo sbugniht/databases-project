@@ -176,9 +176,9 @@ SELECT B.booking_id, U.user_id, F.flight_id, S.class,
        A1.country AS departure_country,
        A2.country AS arrival_country,
        CASE
-           WHEN A1.country = A2.country THEN FEE.dom_fee
-           ELSE FEE.int_fee
-       END AS fee,
+           WHEN A1.country = A2.country THEN Fee.dom_fee
+           ELSE Fee.int_fee
+       END AS feeamount,
        (CASE S.class
            WHEN 'Economy' THEN E.price
            WHEN 'Business' THEN Bz.price
@@ -186,8 +186,8 @@ SELECT B.booking_id, U.user_id, F.flight_id, S.class,
            ELSE 0
        END +
        CASE
-           WHEN A1.country = A2.country THEN FEE.dom_fee
-           ELSE FEE.int_fee
+           WHEN A1.country = A2.country THEN Fee.dom_fee
+           ELSE Fee.int_fee
        END) AS total_price
 FROM Bookings B
 JOIN Users U ON B.user_id = U.user_id
