@@ -83,28 +83,28 @@ insert ignore into Bookings(user_id, flight_id, seat_id) VALUES
 (2, 1, 1),
 (3, 2, 2),
 (2, 3, 3);
-insert ignore into SeatAssignment( flight_id, class) VALUES
-(1, "Economy"),
-(2, "Business"),
-(3, "FirstClass"),
-(6, "FirstClass"),
-(7, "Economy"),
-(8, "Business"),
-(9, "FirstClass"),
-(10, "Economy");
+insert ignore into SeatAssignment( seat_id,flight_id, class) VALUES
+(1,1, "Economy"),
+(3,2, "Business"),
+(4,3, "FirstClass"),
+(12,6, "FirstClass"),
+(89,7, "Economy"),
+(13,8, "Business"),
+(11,9, "FirstClass"),
+(29,10, "Economy");
 
-insert ignore into Economy(seat_id, price) VALUES
-(1, 150),
-(2, 200),
-(3, 180);
-insert ignore into Business(seat_id, price) VALUES
-(1, 300),                   
-(2, 400),
-(3, 360);
-insert ignore into FirstClass(seat_id, price) VALUES
-(1, 500),
-(2, 600),
-(3, 540);   
+insert ignore into Economy(price) VALUES
+(150),
+(200),
+( 180);
+insert ignore into Business( price) VALUES
+(300),                   
+( 400),
+( 360);
+insert ignore into FirstClass(price) VALUES
+( 500),
+( 600),
+( 540);   
 insert ignore into Dom_flight(flight_id) VALUES
 (1),
 (2),
