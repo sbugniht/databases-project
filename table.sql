@@ -73,9 +73,12 @@ CREATE TABLE Flights (
     FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
 );
 
---Parent entity: Tickets
+
 CREATE TABLE Tickets(
-    seat_id INT PRIMARY KEY -- number of seat, from 0 to seats from Commercial 
+    seat_id INT NOT NULL -- number of seat, from 0 to seats from Commercial 
+    flight_id INT NOT NULL, 
+    PRIMARY KEY (seat_id, flight_id),
+    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id),
     
 );
 
@@ -83,34 +86,16 @@ CREATE TABLE SeatAssignment(
     seat_id INT PRIMARY KEY,
     flight_id INT NOT NULL,
     class ENUM('Economy','Business','FirstClass') NOT NULL,
-    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id)
+    PRIMARY KEY (seat_id, flight_id),
+    FOREIGN KEY (flight_id,seat_id) REFERENCES Tickets(flight_id,seat_id)
+
 );
-
---child entity: Economy
-CREATE TABLE Economy(
-    
-    seat_id INT PRIMARY KEY,
-    price INT,
-    FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
-    
+create table classPrice(
+    class ENUM('Economy','Business','FirstClass') PRIMARY KEY,
+    PRICE int NOT NULL,
 );
+insert into ClassPrice values ('Economy', 150),('Business', 300),('FirstClass', 500);
 
---child entity: Business
-CREATE TABLE Business(
-   
-    seat_id INT PRIMARY KEY,
-    price INT,
-    FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
-   
-    );
-
---child entity: FirstClass
-CREATE TABLE FirstClass(
-   
-    seat_id INT PRIMARY KEY,
-    price INT,
-    FOREIGN KEY (seat_id) REFERENCES SeatAssignment(seat_id)
-    );
 
 -- Child entity: dom_flight (Domestic Flight)
 CREATE TABLE Dom_flight (
@@ -139,6 +124,12 @@ CREATE TABLE Int_flight (
     
     );
 
+CREATE TABLE Customer(
+    USER_ID INT PRIMARY KEY,
+    FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID)
+
+);
+
 CREATE TABLE Bookings (
     booking_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -151,11 +142,7 @@ CREATE TABLE Bookings (
 );
 
 --child entity from User: customer
-CREATE TABLE Customer(
-    USER_ID INT PRIMARY KEY,
-    FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID)
 
-);
 
 --child entity from User: admin, can modify flights
 CREATE TABLE Admin (

@@ -70,28 +70,30 @@ insert ignore into Flights(flight_id, Aairport_id, Dairport_id, plane_id, plane_
 (8, 4, 3, 8, 'on time'),
 (9, 6, 5, 9, 'delayed'),
 (10, 8, 7, 10, 'on time');
-insert ignore into Tickets(seat_id) VALUES
-(1),
-(2),
-(3),
-(6),
-(7),
-(8),
-(9),
-(10);
+insert ignore into Tickets(seat_id,flight_id) VALUES
+(1,1),
+(2,1),
+(3,2),
+(4,2),
+(5,3),
+(6,3),
+(7,6),
+(8,6),
+(9,7),
+(10,7);
 insert ignore into Bookings(user_id, flight_id, seat_id) VALUES
 (2, 1, 1),
-(3, 2, 2),
+(3, 1, 2),
 (2, 3, 3);
-insert ignore into SeatAssignment( seat_id,flight_id, class) VALUES
+insert ignore into SeatAssignment(seat_id,flight_id, class) VALUES
 (1,1, "Economy"),
-(3,2, "Business"),
+(3,1, "Business"),
 (4,3, "FirstClass"),
-(12,6, "FirstClass"),
-(89,7, "Economy"),
-(13,8, "Business"),
-(11,9, "FirstClass"),
-(29,10, "Economy");
+(5,6, "FirstClass"),
+(6,7, "Economy"),
+(7,8, "Business"),
+(8,9, "FirstClass"),
+(9,10, "Economy");
 
 insert ignore into Economy(seat_id,price) VALUES
 (1,150),
