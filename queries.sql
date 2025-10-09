@@ -1,49 +1,65 @@
-SELECT plane_id
-FROM Plane
-where   plane_id NOT IN (SELECT plane_id FROM Cargo); 
 
-SELECT b.booking_id, b.booking_date, t.seat_id, f.flight_id, s.class
-FROM Bookings b
-JOIN Tickets t ON b.seat_id = t.seat_id
-JOIN Flights f ON b.flight_id = f.flight_id
-JOIN SeatAssignment s ON t.seat_id = s.seat_id
-WHERE b.user_id = ?;
+    -- Find the airport with the highest prices of domestic flights
+WHERE plane_id NOT IN (
+    SELECT plane_id
+    FROM Flights AS F
+    JOIN Fee AS Fe ON F.Dairport_id = Fe.country
+    WHERE Fe.dom_fee = (
+        SELECT MAX(dom_fee)
+        FROM Fee
+    )
+);
 
-SELECT b.booking_id, b.booking_date, f.flight_id, a1.iata AS from_airport, a2.iata AS to_airport, s.class
-FROM Bookings b
-JOIN Flights f ON b.flight_id = f.flight_id
-JOIN Airport a1 ON f.Dairport_id = a1.airport_id
-JOIN Airport a2 ON f.Aairport_id = a2.airport_id
-JOIN SeatAssignment s ON b.seat_id = s.seat_id
-WHERE b.user_id = ?;
+-- Find the airports with most amount of flights between them, the number of flights, and average price
+SELECT A1.iata AS departure_iata, A2.iata AS arrival_iata, COUNT(*) AS num_flights,
+       AVG(
+           CASE 
+               WHEN A1.country = A2.country THEN Fe.dom_fee
+               ELSE Fe.int_fee
+           END
+       ) AS avg_price
+FROM Flights F
+JOIN Airport A1 ON F.Dairport_id = A1.airport_id
+JOIN Airport A2 ON F.Aairport_id = A2.airport_id
+JOIN Fee Fe ON A1.country = Fe.country
+GROUP BY A1.iata, A2.iata
+ORDER BY num_flights DESC
+LIMIT 1;
 
 
-SELECT s.seat_id, s.class
-FROM SeatAssignment s
-LEFT JOIN Bookings b ON s.seat_id = b.seat_id AND b.flight_id = ?
-WHERE b.seat_id IS NULL AND s.flight_id = ?;
+-- View that shows the total cost for each user including base price and fees
+-- The view is named 'view_costo'
+CREATE OR REPLACE VIEW view_costo AS
+SELECT U.user_id, 
+       CASE 
+           WHEN SA.class = 'Economy' THEN E.price
+           WHEN SA.class = 'Business' THEN Bz.price
+           WHEN SA.class = 'FirstClass' THEN Fc.price
+           ELSE 0
+       END AS base_price,
+       A1.country AS departure_country,
+       A2.country AS arrival_country,
+       CASE 
+           WHEN A1.country = A2.country THEN Fe.dom_fee
+           ELSE Fe.int_fee
+       END AS feeamount,
+       (CASE 
+           WHEN SA.class = 'Economy' THEN E.price
+           WHEN SA.class = 'Business' THEN Bz.price
+           WHEN SA.class = 'FirstClass' THEN Fc.price
+           ELSE 0
+         END +
+        CASE 
+           WHEN A1.country = A2.country THEN Fe.dom_fee
+           ELSE Fe.int_fee
+        END) AS total_price
+FROM Users U
+LEFT JOIN SeatAssignment SA ON U.user_id = U.user_id
+LEFT JOIN Economy E ON SA.seat_id = E.seat_id
+LEFT JOIN Business Bz ON SA.seat_id = Bz.seat_id
+LEFT JOIN FirstClass Fc ON SA.seat_id = Fc.seat_id
+LEFT JOIN Flights F ON SA.flight_id = F.flight_id
+LEFT JOIN Airport A1 ON F.Dairport_id = A1.airport_id
+LEFT JOIN Airport A2 ON F.Aairport_id = A2.airport_id
+LEFT JOIN Fee Fe ON A1.country = Fe.country;
 
-SELECT f.flight_id, a1.country AS departure_country, a2.country AS arrival_country, fee.dom_fee, fee.int_fee
-FROM Int_flight f
-JOIN Airport a1 ON f.Dairport_id = a1.airport_id
-JOIN Airport a2 ON f.Aairport_id = a2.airport_id
-JOIN Fee fee ON a2.country = fee.country;
-
-SELECT c.USER_ID, COUNT(b.booking_id) AS num_bookings
-FROM Customer c
-JOIN Bookings b ON c.USER_ID = b.user_id
-GROUP BY c.USER_ID
-HAVING num_bookings > ?;
-
-SELECT f.flight_id, f.plane_id, f.plane_status, s.class, e.price AS economy_price, b.price AS business_price, fc.price AS firstclass_price
-FROM Flights f
-JOIN SeatAssignment s ON f.flight_id = s.flight_id
-LEFT JOIN Economy e ON s.seat_id = e.seat_id
-LEFT JOIN Business b ON s.seat_id = b.seat_id
-LEFT JOIN FirstClass fc ON s.seat_id = fc.seat_id
-WHERE f.Dairport_id = 1 AND f.Aairport_id = 2 AND f.flight_id NOT IN (
-    SELECT flight_id FROM Bookings WHERE booking_date = '2025-10-09'
-)
-ORDER BY f.flight_id, s.class;
-
-    
