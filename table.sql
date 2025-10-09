@@ -16,6 +16,7 @@ drop table if exists Cargo;
 drop table if exists Plane;
 drop table if exists Fee;
 drop view if exists View_Price;
+drop table if exists classPrice;
 
 -- used to save the fees by country and calculate the final ticket cost
 CREATE TABLE  Fee(
