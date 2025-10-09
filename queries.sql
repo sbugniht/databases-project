@@ -1,13 +1,4 @@
 
-    -- Find the airport with the highest prices of domestic flights
-
-    SELECT plane_id
-    FROM Flights AS F
-    JOIN Fee AS Fe ON F.Dairport_id = Fe.country
-    WHERE Fe.dom_fee = (
-        SELECT MAX(dom_fee)
-        FROM Fee
-    )
 
 
 -- Find the airports with most amount of flights between them, the number of flights, and average price
@@ -27,42 +18,6 @@ ORDER BY num_flights DESC
 LIMIT 1;
 
 
--- View that shows the total cost for each user including base price and fees
--- The view is named 'view_costo'
-CREATE OR REPLACE VIEW view_costo AS
-SELECT U.user_id, 
-       CASE 
-           WHEN SA.class = 'Economy' THEN E.price
-           WHEN SA.class = 'Business' THEN Bz.price
-           WHEN SA.class = 'FirstClass' THEN Fc.price
-           ELSE 0
-       END AS base_price,
-       A1.country AS departure_country,
-       A2.country AS arrival_country,
-       CASE 
-           WHEN A1.country = A2.country THEN Fe.dom_fee
-           ELSE Fe.int_fee
-       END AS feeamount,
-       (CASE 
-           WHEN SA.class = 'Economy' THEN E.price
-           WHEN SA.class = 'Business' THEN Bz.price
-           WHEN SA.class = 'FirstClass' THEN Fc.price
-           ELSE 0
-         END +
-        CASE 
-           WHEN A1.country = A2.country THEN Fe.dom_fee
-           ELSE Fe.int_fee
-        END) AS total_price
-FROM Users U
-LEFT JOIN SeatAssignment SA ON U.user_id = U.user_id
-LEFT JOIN Economy E ON SA.seat_id = E.seat_id
-LEFT JOIN Business Bz ON SA.seat_id = Bz.seat_id
-LEFT JOIN FirstClass Fc ON SA.seat_id = Fc.seat_id
-LEFT JOIN Flights F ON SA.flight_id = F.flight_id
-LEFT JOIN Airport A1 ON F.Dairport_id = A1.airport_id
-LEFT JOIN Airport A2 ON F.Aairport_id = A2.airport_id
-LEFT JOIN Fee Fe ON A1.country = Fe.country;
-
 SELECT b.booking_id, b.booking_date, t.seat_id, f.flight_id, s.class
 FROM Bookings b
 JOIN Tickets t ON b.seat_id = t.seat_id
@@ -75,3 +30,120 @@ SELECT e.seat_id, e.price
 FROM Economy e
 JOIN SeatAssignment s ON e.seat_id = s.seat_id
 WHERE s.class = 'Economy';
+
+
+SELECT F.flight_id,
+       SUM(CP.price + CASE WHEN Adep.country = Aarr.country THEN Fe.dom_fee ELSE Fe.int_fee END) AS revenue
+FROM Bookings B
+JOIN SeatAssignment SA ON SA.flight_id = B.flight_id AND SA.seat_id = B.seat_id
+JOIN ClassPrice CP     ON CP.class = SA.class
+JOIN Flights F         ON F.flight_id = B.flight_id
+JOIN Airport Adep      ON F.Dairport_id = Adep.airport_id
+JOIN Airport Aarr      ON F.Aairport_id = Aarr.airport_id
+JOIN Fee Fe            ON Adep.country = Fe.country
+GROUP BY F.flight_id
+ORDER BY revenue DESC;
+
+
+SELECT F.flight_id
+FROM Flights F
+JOIN Commercial C ON C.plane_id = F.plane_id
+LEFT JOIN Bookings B ON B.flight_id = F.flight_id
+GROUP BY F.flight_id, C.seats
+HAVING COUNT(B.seat_id) >= C.seats;
+
+
+
+SELECT A.*
+FROM Airport A
+JOIN Fee Fe ON Fe.country = A.country
+WHERE Fe.dom_fee = (SELECT MAX(dom_fee) FROM Fee);
+
+
+SELECT
+  F.flight_id,
+  SA.class,
+  COUNT(DISTINCT T.seat_id) AS seats_total_in_class,
+  COUNT(DISTINCT B.seat_id) AS seats_booked_in_class,
+  (COUNT(DISTINCT T.seat_id) - COUNT(DISTINCT B.seat_id)) AS seats_available_in_class
+FROM Flights F
+JOIN Tickets T            ON T.flight_id = F.flight_id
+JOIN SeatAssignment SA    ON SA.flight_id = T.flight_id AND SA.seat_id = T.seat_id
+LEFT JOIN Bookings B      ON B.flight_id = T.flight_id AND B.seat_id = T.seat_id
+GROUP BY F.flight_id, SA.class
+ORDER BY F.flight_id, SA.class;
+
+
+SELECT U.user_id,
+       COALESCE(COUNT(B.booking_id), 0) AS bookings_count
+FROM Users U
+LEFT JOIN Bookings B ON B.user_id = U.user_id
+GROUP BY U.user_id
+ORDER BY bookings_count DESC, U.user_id;
+
+
+SELECT 
+    F.flight_id,
+    Adep.iata AS departure_iata,
+    Aarr.iata AS arrival_iata,
+    CASE 
+        WHEN Adep.country = Aarr.country THEN 'domestic'
+        ELSE 'international'
+    END AS route_type,
+    SUM(CP.price 
+        + CASE 
+            WHEN Adep.country = Aarr.country THEN Fe.dom_fee 
+            ELSE Fe.int_fee 
+          END
+    ) AS total_cost
+FROM Flights F
+JOIN Airport Adep       ON Adep.airport_id = F.Dairport_id
+JOIN Airport Aarr       ON Aarr.airport_id = F.Aairport_id
+JOIN Fee Fe             ON Fe.country = Adep.country
+JOIN Bookings B         ON B.flight_id = F.flight_id
+JOIN SeatAssignment SA  ON SA.flight_id = B.flight_id AND SA.seat_id = B.seat_id
+JOIN ClassPrice CP      ON CP.class = SA.class
+GROUP BY 
+    F.flight_id, Adep.iata, Aarr.iata, route_type
+ORDER BY total_cost DESC;
+
+
+
+SELECT F.flight_id
+FROM Flights F
+LEFT JOIN Bookings B ON B.flight_id = F.flight_id
+WHERE B.flight_id IS NULL
+ORDER BY F.flight_id;
+
+
+SELECT
+  F.flight_id,
+  SUM(CASE WHEN SA.class = 'Economy'    THEN 1 ELSE 0 END) AS booked_economy,
+  SUM(CASE WHEN SA.class = 'Business'   THEN 1 ELSE 0 END) AS booked_business,
+  SUM(CASE WHEN SA.class = 'FirstClass' THEN 1 ELSE 0 END) AS booked_first
+FROM Flights F
+LEFT JOIN Bookings B        ON B.flight_id = F.flight_id
+LEFT JOIN SeatAssignment SA ON SA.flight_id = B.flight_id AND SA.seat_id = B.seat_id
+GROUP BY F.flight_id
+ORDER BY F.flight_id;
+
+
+WITH dep AS (
+  SELECT F.Dairport_id AS airport_id, COUNT(*) AS dep_count
+  FROM Flights F GROUP BY F.Dairport_id
+),
+arr AS (
+  SELECT F.Aairport_id AS airport_id, COUNT(*) AS arr_count
+  FROM Flights F GROUP BY F.Aairport_id
+)
+SELECT
+  A.iata,
+  COALESCE(dep.dep_count,0) + COALESCE(arr.arr_count,0) AS total_traffic,
+  COALESCE(dep.dep_count,0) AS departures,
+  COALESCE(arr.arr_count,0) AS arrivals
+FROM Airport A
+LEFT JOIN dep ON dep.airport_id = A.airport_id
+LEFT JOIN arr ON arr.airport_id = A.airport_id
+ORDER BY total_traffic DESC, A.iata
+LIMIT 5;
+
