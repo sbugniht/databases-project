@@ -82,11 +82,11 @@ CREATE TABLE Tickets(
 );
 
 CREATE TABLE SeatAssignment(
-    seat_id INT PRIMARY KEY,
+    seat_id INT NOT NULL,
     flight_id INT NOT NULL,
     class ENUM('Economy','Business','FirstClass') NOT NULL,
     PRIMARY KEY (seat_id, flight_id),
-    FOREIGN KEY (flight_id,seat_id) REFERENCES Tickets(flight_id,seat_id)
+    FOREIGN KEY (seat_id,flight_id) REFERENCES Tickets(flight_id,seat_id)
 
 );
 create table classPrice(
