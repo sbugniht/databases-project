@@ -75,7 +75,7 @@ CREATE TABLE Flights (
 
 
 CREATE TABLE Tickets(
-    seat_id INT NOT NULL -- number of seat, from 0 to seats from Commercial 
+    seat_id INT NOT NULL, -- number of seat, from 0 to seats from Commercial 
     flight_id INT NOT NULL, 
     PRIMARY KEY (seat_id, flight_id),
     FOREIGN KEY (flight_id) REFERENCES Flights(flight_id),
