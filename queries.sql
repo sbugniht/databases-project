@@ -36,7 +36,7 @@ SELECT F.flight_id,
        SUM(CP.price + CASE WHEN Adep.country = Aarr.country THEN Fe.dom_fee ELSE Fe.int_fee END) AS revenue
 FROM Bookings B
 JOIN SeatAssignment SA ON SA.flight_id = B.flight_id AND SA.seat_id = B.seat_id
-JOIN ClassPrice CP     ON CP.class = SA.class
+JOIN classPrice CP     ON CP.class = SA.class
 JOIN Flights F         ON F.flight_id = B.flight_id
 JOIN Airport Adep      ON F.Dairport_id = Adep.airport_id
 JOIN Airport Aarr      ON F.Aairport_id = Aarr.airport_id
@@ -102,7 +102,7 @@ JOIN Airport Aarr       ON Aarr.airport_id = F.Aairport_id
 JOIN Fee Fe             ON Fe.country = Adep.country
 JOIN Bookings B         ON B.flight_id = F.flight_id
 JOIN SeatAssignment SA  ON SA.flight_id = B.flight_id AND SA.seat_id = B.seat_id
-JOIN ClassPrice CP      ON CP.class = SA.class
+JOIN classPrice CP      ON CP.class = SA.class
 GROUP BY 
     F.flight_id, Adep.iata, Aarr.iata, route_type
 ORDER BY total_cost DESC;
