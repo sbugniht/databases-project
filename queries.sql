@@ -1,6 +1,6 @@
 
     -- Find the airport with the highest prices of domestic flights
-WHERE plane_id NOT IN (
+
     SELECT plane_id
     FROM Flights AS F
     JOIN Fee AS Fe ON F.Dairport_id = Fe.country
@@ -8,7 +8,7 @@ WHERE plane_id NOT IN (
         SELECT MAX(dom_fee)
         FROM Fee
     )
-);
+
 
 -- Find the airports with most amount of flights between them, the number of flights, and average price
 SELECT A1.iata AS departure_iata, A2.iata AS arrival_iata, COUNT(*) AS num_flights,
@@ -63,3 +63,15 @@ LEFT JOIN Airport A1 ON F.Dairport_id = A1.airport_id
 LEFT JOIN Airport A2 ON F.Aairport_id = A2.airport_id
 LEFT JOIN Fee Fe ON A1.country = Fe.country;
 
+SELECT b.booking_id, b.booking_date, t.seat_id, f.flight_id, s.class
+FROM Bookings b
+JOIN Tickets t ON b.seat_id = t.seat_id
+JOIN Flights f ON b.flight_id = f.flight_id
+JOIN SeatAssignment s ON t.seat_id = s.seat_id
+WHERE b.user_id = 1;
+
+
+SELECT e.seat_id, e.price
+FROM Economy e
+JOIN SeatAssignment s ON e.seat_id = s.seat_id
+WHERE s.class = 'Economy';

@@ -93,18 +93,18 @@ insert ignore into SeatAssignment( seat_id,flight_id, class) VALUES
 (11,9, "FirstClass"),
 (29,10, "Economy");
 
-insert ignore into Economy(price) VALUES
-(150),
-(200),
-( 180);
-insert ignore into Business( price) VALUES
-(300),                   
-( 400),
-( 360);
-insert ignore into FirstClass(price) VALUES
-( 500),
-( 600),
-( 540);   
+insert ignore into Economy(seat_id,price) VALUES
+(1,150),
+(2,200),
+(3,180);
+insert ignore into Business(seat_id,price) VALUES
+(6,300),                   
+(7,400),
+(8,360);
+insert ignore into FirstClass(seat_id,price) VALUES
+(9,500),
+(10,600),
+(11,540);   
 insert ignore into Dom_flight(flight_id) VALUES
 (1),
 (2),
