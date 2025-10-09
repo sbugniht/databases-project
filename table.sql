@@ -91,7 +91,7 @@ CREATE TABLE SeatAssignment(
 );
 create table classPrice(
     class ENUM('Economy','Business','FirstClass') PRIMARY KEY,
-    PRICE int NOT NULL,
+    PRICE int NOT NULL
 );
 insert into ClassPrice values ('Economy', 150),('Business', 300),('FirstClass', 500);
 
