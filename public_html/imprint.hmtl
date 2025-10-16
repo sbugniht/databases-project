@@ -19,7 +19,7 @@
 
   <main>
     <h1>Imprint & Disclaimer</h1>
-    <p>Contact: name at example dot com</p>
+    <p>Contact: do not touch, it's dangerous</p>
 
     <p>
       This website is student lab work and does not necessarily reflect Constructor University opinions.
@@ -30,11 +30,14 @@
       For each external link existing on this website, we initially have checked that the target page does not contain contents which is illegal wrt. German jurisdiction.
       However, as we have no influence on such contents, this may change without our notice. Therefore we deny any responsibility for the websites referenced through our external links from here.
     </p>
-    <p>No information conflicting with GDPR is stored in the server.</p>
+    <p>No information conflicting with GDPR is stored in the server.
+      Travel with us to discover beautiful destinations around the world!
+    </p>
+    <img src="images/IMG_2057.HEIC" alt="Beautiful Destination" style="width:100%;max-width:600px;">
   </main>
 
   <footer>
-    <p>&copy; 2025 ProjectName</p>
+    <p>&copy; 2025 SkyBook</p>
   </footer>
 </body>
 </html>

@@ -1,11 +1,7 @@
-/* ============================
-   SkyBook Corporate Design
-   ============================ */
 
-/* Color Palette */
 :root {
-  --primary-color: #C62828;   /* red */
-  --secondary-color: #FFD700; /* gold */
+  --primary-color: #C62828;  
+  --secondary-color: #FFD700; 
   --background-color: #FFFFFF;
   --text-color: #333333;
   --error-color: #B71C1C;
@@ -13,7 +9,7 @@
   --font-main: 'Inter', system-ui, sans-serif;
 }
 
-/* Global Styles */
+
 * {
   margin: 0;
   padding: 0;
@@ -36,7 +32,7 @@ a:hover {
   color: var(--secondary-color);
 }
 
-/* Header */
+
 header {
   background-color: var(--background-color);
   display: flex;
@@ -67,7 +63,7 @@ nav a.active {
   border-bottom: 2px solid var(--primary-color);
 }
 
-/* Hero Section */
+
 .hero {
   text-align: center;
   padding: 3rem 1rem;
@@ -125,7 +121,7 @@ input:focus {
   border-color: var(--primary-color);
 }
 
-/* Buttons */
+
 .btn-primary {
   background-color: var(--primary-color);
   color: white;
@@ -142,7 +138,7 @@ input:focus {
   color: var(--text-color);
 }
 
-/* Features */
+
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -166,7 +162,7 @@ input:focus {
   margin-bottom: 0.5rem;
 }
 
-/* Disclaimer */
+
 .disclaimer {
   font-size: 0.85rem;
   max-width: 800px;
@@ -175,7 +171,7 @@ input:focus {
   color: #555;
 }
 
-/* Footer */
+
 footer {
   background-color: var(--primary-color);
   color: white;
@@ -193,7 +189,7 @@ footer a:hover {
   color: var(--secondary-color);
 }
 
-/* Responsive */
+
 @media (max-width: 600px) {
   header {
     flex-direction: column;
