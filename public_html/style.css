@@ -43,6 +43,14 @@ header {
   margin: 0 auto;
 }
 
+.logo-image {
+  width: 28px;       
+  height: 28px;      
+  object-fit: contain;
+  margin-right: 8px; 
+  vertical-align: middle;
+}
+
 .logo {
   font-size: 1.5rem;
   font-weight: 700;

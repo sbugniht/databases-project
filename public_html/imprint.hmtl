@@ -31,8 +31,9 @@
       However, as we have no influence on such contents, this may change without our notice. Therefore we deny any responsibility for the websites referenced through our external links from here.
     </p>
     <p>No information conflicting with GDPR is stored in the server.
-      Travel with us to discover beautiful destinations around the world!
-    </p>
+    <div> 
+      Travel with us to discover beautiful destinations around the world! <p>
+    
     <img src="images/cannon.jpg" alt="Beautiful Destination" style="width:100%;max-width:600px;">
   </main>
 
