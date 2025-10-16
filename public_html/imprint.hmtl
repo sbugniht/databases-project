@@ -12,7 +12,7 @@
     <nav>
       <ul>
         <li><a href="index.html">Home</a></li>
-        <li><a href="imprint.html" class="active">Imprint</a></li>
+        <li><a href="imprint.hmtl" class="active">Imprint</a></li>
       </ul>
     </nav>
   </header>
