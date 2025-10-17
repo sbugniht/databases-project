@@ -22,7 +22,8 @@ def input_flight():
         arrival = request.form.get('arrival')
 
         # Insert into DB (omitted for brevity)
-        print(f"Saving flight: {flight_number}, {departure} -> {arrival}")
+        print("Saving flight: {}, {} -> {}".format(flight_number, departure, arrival))
+
 
         return redirect(url_for('feedback', message='Flight added successfully!'))
 
