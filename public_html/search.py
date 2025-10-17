@@ -1,39 +1,39 @@
-from flask import Flask, render_template, request, redirect, url_for
+#!/usr/bin/env python3
 
-app = Flask(__name__)
+import cgi
+import cgitb
+import mysql.connector
 
-# Homepage
-@app.route('/')
-def index():
-    return render_template('index.html')
+cgitb.enable()  # Show errors in browser (useful during dev)
 
-# Imprint page
-@app.route('/imprint')
-def imprint():
-    return render_template('imprint.html')
+print("Content-Type: text/html\n")  # Required HTTP header
 
-# Example input form page (e.g., for Flights)
-@app.route('/input/flight', methods=['GET', 'POST'])
-def input_flight():
-    if request.method == 'POST':
-        # Here you would save to the database
-        flight_number = request.form.get('flight_number')
-        departure = request.form.get('departure')
-        arrival = request.form.get('arrival')
+form = cgi.FieldStorage()
+flight_number = form.getfirst("flight_number", "").strip()
 
-        # Insert into DB (omitted for brevity)
-        print("Saving flight: {}, {} -> {}".format(flight_number, departure, arrival))
+# Connect to MariaDB
+db = mysql.connector.connect(
+    host="localhost",
+    user="your_db_user",
+    password="your_db_password",
+    database="your_db_name"
+)
+cursor = db.cursor()
 
+if flight_number:
+    cursor.execute("INSERT INTO flights (flight_number) VALUES (%s)", (flight_number,))
+    db.commit()
+    message = f"Flight {flight_number} added."
+else:
+    message = "No flight number provided."
 
-        return redirect(url_for('feedback', message='Flight added successfully!'))
-
-    return render_template('input_flight.html')
-
-# Feedback page
-@app.route('/feedback')
-def feedback():
-    message = request.args.get('message', 'Operation completed.')
-    return render_template('feedback.html', message=message)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# Simple HTML response
+print(f"""
+<html>
+<head><title>Flight added</title></head>
+<body>
+<h1>{message}</h1>
+<a href="index.html">Back to home</a>
+</body>
+</html>
+""")
