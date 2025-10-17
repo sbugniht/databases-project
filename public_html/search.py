@@ -13,10 +13,10 @@ flight_number = form.getfirst("flight_number", "").strip()
 
 # Connect to MariaDB
 db = mysql.connector.connect(
-    host="localhost",
-    user="your_db_user",
-    password="your_db_password",
-    database="your_db_name"
+    host="gbrugnara@clabsql.clamv.constructor.university",
+    user="gbrugnara",
+    password="KeRjnLwqj+rTTG3E",
+    database="db_gbrugnara"
 )
 cursor = db.cursor()
 
