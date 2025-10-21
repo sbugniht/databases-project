@@ -3,7 +3,7 @@
 // Connessione al database
 $servername = "gbrugnara@clabsql.clamv.constructor.university";
 $username = "gbrugnara";
-$password = "4JjJ0zWOOo76";
+$password = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
