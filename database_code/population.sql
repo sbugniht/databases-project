@@ -26,19 +26,20 @@ insert ignore into Fee(country, dom_fee, int_fee) VALUES
 ('ITALY', 105, 320),
 ('SPAIN', 95, 310);
 
-insert ignore into Airport(airport_id, iata, country) VALUES
-(1, 'JFK', 'USA'),
-(2, 'LAX', 'USA'),
-(3, 'YYZ', 'CANADA'),
-(4, 'YVR', 'CANADA'),
-(5, 'MEX', 'MEXICO'),
-(6, 'GRU', 'BRAZIL'),
-(7, 'EZE', 'ARGENTINA'),
-(8, 'LHR', 'UK'),
-(9, 'CDG', 'FRANCE'),
-(10, 'FRA', 'GERMANY'),
-(11, 'FCO', 'ITALY'),
-(12, 'MAD', 'SPAIN');
+INSERT IGNORE INTO Airport(airport_id, iata, city, country) VALUES
+(1,  'JFK', 'New York',        'USA'),
+(2,  'LAX', 'Los Angeles',     'USA'),
+(3,  'YYZ', 'Toronto',         'CANADA'),
+(4,  'YVR', 'Vancouver',       'CANADA'),
+(5,  'MEX', 'Mexico City',     'MEXICO'),
+(6,  'GRU', 'São Paulo',       'BRAZIL'),
+(7,  'EZE', 'Buenos Aires',    'ARGENTINA'),
+(8,  'LHR', 'London',          'UK'),
+(9,  'CDG', 'Paris',           'FRANCE'),
+(10, 'FRA', 'Frankfurt',       'GERMANY'),
+(11, 'FCO', 'Rome',            'ITALY'),
+(12, 'MAD', 'Madrid',          'SPAIN');
+
 
 insert ignore into Users(user_id, pwd, privilege) VALUES
 (1, "pippo", 1), -- admin

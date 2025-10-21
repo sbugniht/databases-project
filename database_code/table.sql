@@ -47,12 +47,39 @@ CREATE TABLE Commercial(
 
 );
 
+-- REPLACE your Airport table with this definition
+DROP TABLE IF EXISTS Airport;
+
 CREATE TABLE Airport(
     airport_id INT PRIMARY KEY,
-    iata CHAR(3) UNIQUE,
-    country VARCHAR(20),
+    iata CHAR(3) UNIQUE NOT NULL,
+    city VARCHAR(50) NOT NULL,                  -- NEW: lets users search by city name
+    country VARCHAR(20) NOT NULL,
     FOREIGN KEY (country) REFERENCES Fee(country)
 );
+
+-- Helpful index so city lookups are fast
+CREATE INDEX idx_airport_city ON Airport(city);
+
+-- Convenience view to search flights by text (city or IATA) without touching numeric IDs
+DROP VIEW IF EXISTS View_SearchFlights;
+CREATE VIEW View_SearchFlights AS
+SELECT
+  F.flight_id,
+  Adep.airport_id AS dep_airport_id,
+  Adep.iata       AS dep_iata,
+  Adep.city       AS dep_city,
+  Adep.country    AS dep_country,
+  Aarr.airport_id AS arr_airport_id,
+  Aarr.iata       AS arr_iata,
+  Aarr.city       AS arr_city,
+  Aarr.country    AS arr_country,
+  F.plane_id,
+  F.plane_status
+FROM Flights F
+JOIN Airport Adep ON F.Dairport_id = Adep.airport_id
+JOIN Airport Aarr ON F.Aairport_id = Aarr.airport_id;
+
 
 --Parent entity: Users
 CREATE TABLE Users(

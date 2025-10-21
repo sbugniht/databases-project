@@ -177,3 +177,17 @@ LEFT JOIN dep ON dep.airport_id = A.airport_id
 LEFT JOIN arr ON arr.airport_id = A.airport_id
 ORDER BY total_traffic DESC, A.iata
 LIMIT 5;
+
+
+-- Search available flights by textual inputs.
+-- Bind :dep_text and :arr_text to what the user typed (e.g., 'New York' or 'JFK').
+-- Case-insensitive exact match; switch to LIKE for partials if desired.
+SELECT
+  flight_id,
+  dep_iata, dep_city, dep_country,
+  arr_iata, arr_city, arr_country,
+  plane_id,
+  plane_status
+FROM View_SearchFlights
+WHERE (UPPER(dep_city) = UPPER(:dep_text) OR UPPER(dep_iata) = UPPER(:dep_text))
+  AND (UPPER(arr_city) = UPPER(:arr_text) OR UPPER(arr_iata) = UPPER(:arr_text));
