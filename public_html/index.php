@@ -1,7 +1,7 @@
 
 <?php
 // Connessione al database
-$servername = "locaclhost";
+$servername = "localhost";
 $username = "gbrugnara";
 $password = "4JjJ0zWOOo76";
 $dbname = "db_gbrugnara";
