@@ -3,9 +3,9 @@
 // Connessione al database
 $servername = "localhost";
 $username = "gbrugnara";
-$password = "4JjJ0zWOOo76";
+$password = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
-
+## 4JjJ0zWOOo76
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Verifica connessione
