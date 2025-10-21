@@ -13,36 +13,50 @@ flight_number = form.getfirst("flight_number", "").strip()
 
 message = ""
 
-if flight_number:
-    try:
-        # Connessione a MariaDB
-        db = MySQLdb.connect(
-            host="gbrugnara@clabsql.clamv.constructor.university",
-            user="gbrugnara",
-            passwd="KeRjnLwqj+rTTG3E",
-            db="db_gbrugnara"
-        )
-        cursor = db.cursor()
+sql = "INSERT INTO Flights (flight_id, Aairport_id, Dairport_id, plane_id, plane_status) VALUES (%s, 'FCO', 'JFK', '11', 'on time')"
 
-        # ✅ Query SQL – inserisce il volo
-        query = """INSERT INTO Flights (flight_id, Aairport_id, Dairport_id, plane_id, plane_status)
-                   VALUES (%s, 'FCO' , 'JFK' , '11', 'on time')"""
-        cursor.execute(query, (flight_number))
-        db.commit()
+cmd = ["mysql",
+       "-u", "gbrugnara",
+       "-pKeRjnLwqj+rTTG3E",
+       "-D", "db_gbrugnara",
+       "-e", sql 
+       ]
 
-        message = "Flight %s saved successfully." % flight_number
+try:
+    subprocess.check_output(cmd)
+    message = "✅ Flight %s added successfully." % flight_number
+except subprocess.CalledProcessError as e:
+    message = "❌ Database error:<br>%s" % e.output
+# if flight_number:
+#     try:
+#         # Connessione a MariaDB
+#         db = MySQLdb.connect(
+#             host="gbrugnara@clabsql.clamv.constructor.university",
+#             user="gbrugnara",
+#             passwd="KeRjnLwqj+rTTG3E",
+#             db="db_gbrugnara"
+#         )
+#         cursor = db.cursor()
 
-    except MySQLdb.Error as e:
-        message = "Database error: %s" % str(e)
+#         # ✅ Query SQL – inserisce il volo
+#         query = """INSERT INTO Flights (flight_id, Aairport_id, Dairport_id, plane_id, plane_status)
+#                    VALUES (%s, 'FCO' , 'JFK' , '11', 'on time')"""
+#         cursor.execute(query, (flight_number))
+#         db.commit()
 
-    finally:
-        try:
-            cursor.close()
-            db.close()
-        except:
-            pass
-else:
-    message = "Missing information. Please fill all fields."
+#         message = "Flight %s saved successfully." % flight_number
+
+#     except MySQLdb.Error as e:
+#         message = "Database error: %s" % str(e)
+
+#     finally:
+#         try:
+#             cursor.close()
+#             db.close()
+#         except:
+#             pass
+# else:
+#     message = "Missing information. Please fill all fields."
 
 
 # Simple HTML response
