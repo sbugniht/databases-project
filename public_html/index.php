@@ -45,7 +45,7 @@ $conn->close();
 </head>
 <body>
 
-  <!-- Header -->
+
   <header>
     <div class="logo-wrapper">
       <img src="images/logo.JPG" alt="SkyBook Logo" class="logo-image">
@@ -57,7 +57,7 @@ $conn->close();
         <li><a href="index.php" class="active">Home</a></li>
         <li><a href="#">Flights</a></li>
         <li><a href="#">About</a></li>
-        <li><a href="imprint.html">Imprint</a></li>
+        <li><a href="imprint.hmtl">Imprint</a></li>
       </ul>
     </nav>
   </header>
@@ -130,7 +130,7 @@ $conn->close();
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2025 SkyBook — <a href="imprint.html">Imprint</a></p>
+    <p>&copy; 2025 SkyBook — <a href="imprint.hmtl">Imprint</a></p>
   </footer>
 
 </body>
