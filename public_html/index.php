@@ -15,22 +15,26 @@ if ($conn->connect_error) {
 
 
 $message = "";
+$search_results = [];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $flight_number = $_POST['flight_number'];
     $departure = $_POST['departure'];
     $arrival = $_POST['arrival'];
-    $pid = $_POST['plane_id'];
+}
 
    
-    $sql = "INSERT INTO Flights (flight_id, Aairport_id, Dairport_id, plane_id, plane_status)
-            VALUES ('$flight_number', '$departure', '$arrival', '$pid', 'On Time')";
+    $sql = "SELECT * FROM Flights
+            WHERE Aairport_id = $arrival AND Dairport_id = $departure";
 
-    if ($conn->query($sql) === TRUE) {
-        $message = "<p class='success'> Flight added successfully!</p>";
+    $result = $conn->query($sql);
+
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $search_results[] = $row;
+        }
     } else {
-        $message = "<p class='error'> Database error: " . $conn->error . "</p>";
+        $message = "<p class='error'>No flights found matching your search.</p>";
     }
-}
 
 $conn->close();
 ?>
@@ -70,19 +74,15 @@ $conn->close();
     <!-- Search Card -->
     <div class="search-card">
       <form method="post" action="index.php">
-        <div class="form-group">
-          <label for="flight_number">Flight Number</label>
-          <input type="text" id="flight_number" name="flight_number" placeholder="e.g., LH123" required>
-        </div>
 
         <div class="form-group">
           <label for="departure">Departure</label>
-          <input type="text" id="departure" name="departure" placeholder="e.g., Berlin" required>
+          <input type="text" id="departure" name="departure" placeholder="e.g. Berlin" required>
         </div>
 
         <div class="form-group">
           <label for="arrival">Arrival</label>
-          <input type="text" id="arrival" name="arrival" placeholder="e.g., Paris" required>
+          <input type="text" id="arrival" name="arrival" placeholder="e.g. Paris" required>
         </div>
 
         <div class="form-group">
@@ -90,7 +90,7 @@ $conn->close();
           <input type="date" id="date" name="date" required>
         </div>
 
-        <button type="submit" class="btn-primary">Add Flight</button>
+        <button type="submit" class="btn-primary">Search Flight</button>
       </form>
       <?php echo $message; ?>
     </div>
