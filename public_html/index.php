@@ -1,7 +1,7 @@
 
 <?php
 // Connessione al database
-$servername = "gbrugnara@clabsql.clamv.constructor.university";
+$servername = "clabsql.clamv.constructor.university";
 $username = "gbrugnara";
 $password = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
