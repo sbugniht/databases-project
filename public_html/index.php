@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
    
-    $sql = "SELECT * FROM Flights
+    $sql = "SELECT flight_id, dep_iata,arr_iata,plane_id,plane_status FROM View_SearchFlights
             WHERE Aairport_id = $arrival AND Dairport_id = $departure";
 
     $result = $conn->query($sql);
@@ -60,7 +60,7 @@ $conn->close();
       <ul>
         <li><a href="index.php" class="active">Home</a></li>
         <li><a href="#">Flights</a></li>
-        <li><a href="#">About</a></li>
+        <li><a href="login.php">Login</a></li>
         <li><a href="imprint.hmtl">Imprint</a></li>
       </ul>
     </nav>
@@ -95,7 +95,7 @@ $conn->close();
       <?php echo $message; ?>
     </div>
   </section>
-  
+
   <?php if (!empty($search_results)): ?>
   <div class="results">
     <h2>Flights Found</h2>
