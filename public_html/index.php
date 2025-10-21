@@ -1,6 +1,6 @@
 
 <?php
-// Connessione al database
+
 $servername = "127.0.0.1";
 $username = "gbrugnara";
 $password = "KeRjnLwqj+rTTG3E";
@@ -8,22 +8,22 @@ $dbname = "db_gbrugnara";
 ## 4JjJ0zWOOo76
 $conn = new mysqli($servername, $username, $password, $dbname, null, "/run/mysql/mysql.sock");
 
-// Verifica connessione
+
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 
-// Se il form è stato inviato
+
 $message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $flight_number = $_POST['flight_number'];
     $departure = $_POST['departure'];
     $arrival = $_POST['arrival'];
-    $date = $_POST['date'];
+    $pid = $_POST['plane_id'];
 
-    // Inserisci i dati nella tabella flights (assicurati che esista nel DB)
-    $sql = "INSERT INTO flights (flight_number, departure, arrival, flight_date)
-            VALUES ('$flight_number', '$departure', '$arrival', '$date')";
+   
+    $sql = "INSERT INTO Flights (flight_id, Aairport_id, Dairport_id, plane_id, plane_status)
+            VALUES ('$flight_number', '$departure', '$arrival', '$pid', 'On Time')";
 
     if ($conn->query($sql) === TRUE) {
         $message = "<p class='success'> Flight added successfully!</p>";
