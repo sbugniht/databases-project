@@ -106,3 +106,21 @@ insert ignore into Int_flight(flight_id) VALUES
 (5),
 (6);
 
+-- === USERS (for login) ===
+INSERT IGNORE INTO Users (user_id, pwd, privilege) VALUES
+(1, 'admin01', 1),  -- Admin
+(2, 'admin02', 1),  -- Admin
+(3, 'john123', 0),  -- Customer
+(4, 'maria22', 0),  -- Customer
+(5, 'liam77', 0);   -- Customer
+
+-- === ADMINS ===
+INSERT IGNORE INTO Admin (user_id, last_login) VALUES
+(1, NOW()),
+(2, NOW());
+
+-- === CUSTOMERS ===
+INSERT IGNORE INTO Customer (user_id) VALUES
+(3),
+(4),
+(5);

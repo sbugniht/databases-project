@@ -24,7 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
    
     $sql = "SELECT flight_id, dep_iata,arr_iata,plane_id,plane_status FROM View_SearchFlights
-            WHERE Aairport_id = $arrival AND Dairport_id = $departure";
+            WHERE 
+    (UPPER(dep_city) = UPPER(?) OR UPPER(dep_iata) = UPPER(?))
+    AND (UPPER(arr_city) = UPPER(?) OR UPPER(arr_iata) = UPPER(?))";
 
     $result = $conn->query($sql);
 
