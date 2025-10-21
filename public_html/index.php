@@ -1,12 +1,12 @@
 
 <?php
 // Connessione al database
-$servername = "localhost";
+$servername = "127.0.0.1";
 $username = "gbrugnara";
 $password = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
 ## 4JjJ0zWOOo76
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname, null, "/run/mysql/mysql.sock");
 
 // Verifica connessione
 if ($conn->connect_error) {
