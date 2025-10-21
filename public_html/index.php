@@ -95,6 +95,31 @@ $conn->close();
       <?php echo $message; ?>
     </div>
   </section>
+  
+  <?php if (!empty($search_results)): ?>
+  <div class="results">
+    <h2>Flights Found</h2>
+    <table>
+      <tr>
+        <th>Flight ID</th>
+        <th>Departure</th>
+        <th>Arrival</th>
+        <th>Plane ID</th>
+        <th>Status</th>
+      </tr>
+      <?php foreach ($search_results as $flight): ?>
+      <tr>
+        <td><?php echo htmlspecialchars($flight['flight_id']); ?></td>
+        <td><?php echo htmlspecialchars($flight['Dairport_id']); ?></td>
+        <td><?php echo htmlspecialchars($flight['Aairport_id']); ?></td>
+        <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
+        <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
+      </tr>
+      <?php endforeach; ?>
+    </table>
+  </div>
+<?php endif; ?>
+
 
   <!-- Features Section -->
   <section class="features">
