@@ -3,9 +3,6 @@ drop table if exists Customer;
 drop table if exists Bookings;
 drop table if exists Int_flight;
 drop table if exists Dom_flight;
-drop table if exists FirstClass;
-drop table if exists Business;
-drop table if exists Economy;
 drop table if exists SeatAssignment;
 drop table if exists Tickets;
 drop table if exists Flights;
@@ -58,27 +55,9 @@ CREATE TABLE Airport(
     FOREIGN KEY (country) REFERENCES Fee(country)
 );
 
--- Helpful index so city lookups are fast
 CREATE INDEX idx_airport_city ON Airport(city);
 
--- Convenience view to search flights by text (city or IATA) without touching numeric IDs
-DROP VIEW IF EXISTS View_SearchFlights;
-CREATE VIEW View_SearchFlights AS
-SELECT
-  F.flight_id,
-  Adep.airport_id AS dep_airport_id,
-  Adep.iata       AS dep_iata,
-  Adep.city       AS dep_city,
-  Adep.country    AS dep_country,
-  Aarr.airport_id AS arr_airport_id,
-  Aarr.iata       AS arr_iata,
-  Aarr.city       AS arr_city,
-  Aarr.country    AS arr_country,
-  F.plane_id,
-  F.plane_status
-FROM Flights F
-JOIN Airport Adep ON F.Dairport_id = Adep.airport_id
-JOIN Airport Aarr ON F.Aairport_id = Aarr.airport_id;
+
 
 
 --Parent entity: Users
@@ -114,7 +93,7 @@ CREATE TABLE SeatAssignment(
     flight_id INT NOT NULL,
     class ENUM('Economy','Business','FirstClass') NOT NULL,
     PRIMARY KEY (seat_id, flight_id),
-    FOREIGN KEY (seat_id,flight_id) REFERENCES Tickets(flight_id,seat_id)
+    FOREIGN KEY (seat_id,flight_id) REFERENCES Tickets(seat_id,flight_id)
 
 );
 create table classPrice(
@@ -127,28 +106,13 @@ insert into classPrice values ('Economy', 150),('Business', 300),('FirstClass', 
 -- Child entity: dom_flight (Domestic Flight)
 CREATE TABLE Dom_flight (
     flight_id INT PRIMARY KEY,
-    Aairport_id INT NOT NULL, -- arrival airport
-    Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
-    plane_id INT NOT NULL,
-    plane_status VARCHAR(20) NOT NULL,
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
-    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
-    
-    
+    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id)
 );
 
 -- Child entity: int_flight (International Flight)
 CREATE TABLE Int_flight (
     flight_id INT PRIMARY KEY,
-    Aairport_id INT NOT NULL, -- arrival airport, from the airport we know the country and therefore find the fee amount as well
-    Dairport_id INT NOT NULL, -- deparature airport, useful both for search and to deteermine the amount to pay to book
-    plane_id INT NOT NULL,
-    plane_status VARCHAR(20) NOT NULL,
-    FOREIGN KEY (plane_id) REFERENCES Plane(plane_id),
-    FOREIGN KEY (Aairport_id) REFERENCES Airport(airport_id),
-    FOREIGN KEY (Dairport_id) REFERENCES Airport(airport_id)
-    
+    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id)
     );
 
 CREATE TABLE Customer(
@@ -164,11 +128,11 @@ CREATE TABLE Bookings (
     seat_id INT NOT NULL,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Customer(user_id),
-    FOREIGN KEY (flight_id) REFERENCES Flights(flight_id),
-    FOREIGN KEY (seat_id) REFERENCES Tickets(seat_id)
+    FOREIGN KEY (flight_id,seat_id) REFERENCES Flights(flight_id,seat_id),
+    
 );
 
---child entity from User: customer
+
 
 
 --child entity from User: admin, can modify flights
@@ -179,6 +143,21 @@ CREATE TABLE Admin (
 
 );
 
---CREATE table viewPrice as 
---SELECT Ticketst.seat_id
- 
+-- Convenience view to search flights by text (city or IATA) without touching numeric IDs
+DROP VIEW IF EXISTS View_SearchFlights;
+CREATE VIEW View_SearchFlights AS
+SELECT
+  F.flight_id,
+  Adep.airport_id AS dep_airport_id,
+  Adep.iata       AS dep_iata,
+  Adep.city       AS dep_city,
+  Adep.country    AS dep_country,
+  Aarr.airport_id AS arr_airport_id,
+  Aarr.iata       AS arr_iata,
+  Aarr.city       AS arr_city,
+  Aarr.country    AS arr_country,
+  F.plane_id,
+  F.plane_status
+FROM Flights F
+JOIN Airport Adep ON F.Dairport_id = Adep.airport_id
+JOIN Airport Aarr ON F.Aairport_id = Aarr.airport_id;
