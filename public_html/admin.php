@@ -1,5 +1,17 @@
 <?php
 session_start();
+
+$servername = "127.0.0.1";
+$username_db = "gbrugnara"; 
+$password_db = "KeRjnLwqj+rTTG3E";
+$dbname = "db_gbrugnara";
+$conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
+
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+
+
 // Controllo di sicurezza: DEVE essere un admin (privilege 1)
 if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
   header("Location: login.php");
@@ -11,7 +23,7 @@ $sql_planes = "
     SELECT 
         P.plane_id, 
         CASE 
-            WHEN C.plane_id IS NOT NULL THEN 'Commercial (' || C.seats || ' seats)'
+            WHEN C.plane_id IS NOT NULL THEN CONCAT('Commercial (', C.seats, ' seats)')
             WHEN G.plane_id IS NOT NULL THEN 'Cargo'
             ELSE 'Unknown'
         END AS type_status

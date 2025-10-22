@@ -1,6 +1,6 @@
 /* BASE RESET & TYPOGRAPHY */
 :root {
-    --primary-color: #ff3300f7; /* Blue */
+    --primary-color: #ff3300; /* Blue */
     --primary-hover: #b31e00;
     --secondary-color: #6c757d; /* Gray */
     --background-light: #f4f7f9;
@@ -413,8 +413,6 @@ footer a {
 header nav {
     margin-left: auto; /* Spinge la nav a sinistra */
 }
-
-/* --- STILI AGGIUNTIVI PER IMPRINT.HTML --- */
 
 .image-gallery {
     display: flex; /* Abilita flexbox per allineamento orizzontale */
