@@ -442,3 +442,94 @@ header nav {
         max-width: 90%; /* Limita la larghezza su mobile */
     }
 }
+
+/* --- LAYOUT AGGIUNTIVO PER ADMIN.PHP --- */
+
+/* Contenitore principale per affiancare liste e moduli */
+.plane-inventory-container,
+.flight-management-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* Griglia per affiancare Aggiungi/Rimuovi (Due colonne) */
+.flight-management-grid {
+    grid-template-columns: 1fr 1fr; 
+}
+
+/* Griglia per affiancare Lista Aerei/Schema Posti (Due colonne) */
+.plane-inventory-container {
+    grid-template-columns: 1fr 2fr; /* Lista stretta, Schema Posti più largo */
+}
+
+.plane-list-card, .plane-seats-card, .form-card {
+    background-color: #fafafa;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border: 1px solid #eee;
+}
+
+.plane-list-card h3, .form-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.plane-list-card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.plane-list-card li {
+    padding: 5px 0;
+    border-bottom: 1px dotted #f0f0f0;
+}
+
+.seat-map-placeholder {
+    height: 200px;
+    background-color: #e9ecef;
+    border: 1px dashed var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+
+/* Adattamento del form per la griglia interna (Due colonne nel modulo) */
+.flight-form {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+}
+
+.flight-form label {
+    grid-column: 1 / 2;
+    text-align: right;
+    align-self: center;
+    font-weight: 600;
+}
+
+.flight-form input,
+.flight-form select {
+    grid-column: 2 / 3;
+    width: 100%;
+}
+
+.flight-form button {
+    grid-column: 1 / 3;
+    margin-top: 15px;
+}
+
+/* Responsività per Admin Grid */
+@media (max-width: 900px) {
+    .flight-management-grid,
+    .plane-inventory-container {
+        grid-template-columns: 1fr; /* Una colonna su mobile */
+    }
+}
