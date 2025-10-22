@@ -8,7 +8,10 @@
 </head>
 <body>
   <header>
-    <div class="logo">SkyBook</div>
+    <div class="logo-wrapper">
+      <img src="images/logo.JPG" alt="SkyBook Logo" class="logo-image">
+      <div class="logo">SkyBook</div>
+    </div>
     <nav>
       <ul>
         <li><a href="index.php">Home</a></li>
@@ -33,8 +36,12 @@
     <p>No information conflicting with GDPR is stored in the server.
     <div> 
       Travel with us to discover beautiful destinations around the world! <p>
-    
+      </div>
+    <div class="image-gallery"></div>
     <img src="images/scout-promotion.jpg" alt="Beautiful Destination" style="width:100%;max-width:600px;">
+    <img src="images/IMG_1716.JPG" alt="City Skyline" style="width:100%;max-width:600px;">
+    <img src="images/4e64b2b4-51a2-4098-95d7-86acfe4e36c5.JPG" alt="Mountain Lake" style="width:100%;max-width:600px;">
+    </div>
   </main>
 
   <footer>

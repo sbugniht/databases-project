@@ -413,3 +413,32 @@ footer a {
 header nav {
     margin-left: auto; /* Spinge la nav a sinistra */
 }
+
+/* --- STILI AGGIUNTIVI PER IMPRINT.HTML --- */
+
+.image-gallery {
+    display: flex; /* Abilita flexbox per allineamento orizzontale */
+    gap: 10px;    /* Spazio tra le immagini */
+    margin: 20px auto;
+    max-width: 1000px; /* Limite massimo per la galleria */
+}
+
+.gallery-img {
+    width: 100%; /* Occupano tutto lo spazio disponibile all'interno del contenitore */
+    flex: 1;     /* Permette alle immagini di crescere e rimpicciolire equamente */
+    height: auto;
+    object-fit: cover; /* Assicura che le immagini riempiano lo spazio senza distorzione */
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+
+/* Rende la galleria a colonna su schermi piccoli */
+@media (max-width: 768px) {
+    .image-gallery {
+        flex-direction: column;
+        align-items: center;
+    }
+    .gallery-img {
+        max-width: 90%; /* Limita la larghezza su mobile */
+    }
+}
