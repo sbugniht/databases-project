@@ -13,32 +13,65 @@ if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 
-
 $message = "";
 $search_results = [];
+$departure = '';
+$arrival = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $departure = $_POST['departure'];
-    $arrival = $_POST['arrival'];
+    // 1. Recupera e sanifica l'input
+    $departure = trim($_POST['departure'] ?? '');
+    $arrival = trim($_POST['arrival'] ?? '');
+    
+    // Controlla che i campi non siano vuoti
+    if (!empty($departure) && !empty($arrival)) {
+
+        // 2. Query SQL con la view, selezionando i campi corretti
+        // Ho incluso dep_city e arr_city che sono più user-friendly
+        $sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status 
+                FROM View_SearchFlights
+                WHERE 
+            (UPPER(dep_city) = UPPER(?) OR UPPER(dep_iata) = UPPER(?))
+            AND (UPPER(arr_city) = UPPER(?) OR UPPER(arr_iata) = UPPER(?))";
+
+        // 3. Prepara la statement
+        $stmt = $conn->prepare($sql);
+        
+        if ($stmt === false) {
+             // In caso di errore nella preparazione, utile per il debug
+            die("SQL Prepare failed: " . $conn->error); 
+        }
+
+        // 4. Collega i parametri (Binding)
+        // Usiamo lo stesso valore ($departure e $arrival) quattro volte
+        // 'ssss' indica 4 parametri di tipo stringa
+        $stmt->bind_param("ssss", $departure, $departure, $arrival, $arrival);
+
+        // 5. Esegui la query
+        $stmt->execute();
+        
+        // 6. Ottieni i risultati
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $search_results[] = $row;
+            }
+            $message = "<p class='success'>". $result->num_rows . " flights found.</p>";
+        } else {
+            $message = "<p class='error'>No flights found matching your search.</p>";
+        }
+
+        // 7. Chiudi la statement
+        $stmt->close();
+    } else {
+        $message = "<p class='error'>Please enter both a Departure and Arrival location.</p>";
+    }
 }
 
-   
-    $sql = "SELECT flight_id, dep_iata,arr_iata,plane_id,plane_status FROM View_SearchFlights
-            WHERE 
-    (UPPER(dep_city) = UPPER(?) OR UPPER(dep_iata) = UPPER(?))
-    AND (UPPER(arr_city) = UPPER(?) OR UPPER(arr_iata) = UPPER(?))";
-
-    $result = $conn->query($sql);
-
-    if ($result && $result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $search_results[] = $row;
-        }
-    } else {
-        $message = "<p class='error'>No flights found matching your search.</p>";
-    }
-
 $conn->close();
+?>
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -104,16 +137,16 @@ $conn->close();
     <table>
       <tr>
         <th>Flight ID</th>
-        <th>Departure</th>
-        <th>Arrival</th>
+        <th>Departure (IATA/City)</th>
+        <th>Arrival (IATA/City)</th>
         <th>Plane ID</th>
         <th>Status</th>
       </tr>
       <?php foreach ($search_results as $flight): ?>
       <tr>
         <td><?php echo htmlspecialchars($flight['flight_id']); ?></td>
-        <td><?php echo htmlspecialchars($flight['Dairport_id']); ?></td>
-        <td><?php echo htmlspecialchars($flight['Aairport_id']); ?></td>
+        <td><?php echo htmlspecialchars($flight['dep_iata']) . ' / ' . htmlspecialchars($flight['dep_city']); ?></td>
+        <td><?php echo htmlspecialchars($flight['arr_iata']) . ' / ' . htmlspecialchars($flight['arr_city']); ?></td>
         <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
         <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
       </tr>
