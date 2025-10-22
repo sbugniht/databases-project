@@ -1,3 +1,8 @@
+-- ===============================================
+-- POPULATION SCRIPT - SKYBOOK AIRLINE DATABASE
+-- Fixes issue with missing Tickets/Commercial planes for all flights.
+-- ===============================================
+
 -- === 1. BASE ENTITIES (PLANE, FEE, AIRPORT, USERS) ===
 
 -- Insert rows into table 'Plane'
@@ -34,16 +39,16 @@ VALUES
 (11, 'FCO', 'Rome',            'ITALY'),
 (12, 'MAD', 'Madrid',          'SPAIN');
 
--- === 2. USER HIERARCHY ===
-
--- Insert rows into table 'Users'
+-- Insert rows into table 'Users' (USER_ID 1 and 2 are Admins, 3, 4, 5 are Customers)
 INSERT IGNORE INTO Users(user_id, pwd, privilege)
 VALUES
-(1, 'admin01', 1),   -- Admin
-(2, 'admin02', 1),   -- Admin
-(3, 'john123', 0),   -- Customer
-(4, 'maria22', 0),   -- Customer
-(5, 'liam77', 0);    -- Customer
+(1, 'admin01', 1),
+(2, 'admin02', 1),
+(3, 'john123', 0),
+(4, 'maria22', 0),
+(5, 'liam77', 0);
+
+-- === 2. USER HIERARCHY ===
 
 -- Insert rows into table 'Admin'
 INSERT IGNORE INTO Admin (user_id, last_login)
@@ -60,35 +65,36 @@ VALUES
 
 -- === 3. PLANE HIERARCHY ===
 
--- Insert rows into table 'Commercial'
+-- Insert rows into table 'Commercial' (Plane IDs: 1, 2, 3, 5, 6, 7, 8, 9, 10)
+-- NOTE: Plane ID 5 è ora Commerciale per risolvere il problema FRA-CDG
 INSERT IGNORE INTO Commercial(plane_id, seats)
 VALUES
-(1, 150), -- JFK-LAX
-(2, 200), -- YYZ-YVR
-(3, 180), -- MEX-GRU
-(6, 220), -- FCO-MAD
-(7, 160), -- LAX-JFK
-(8, 210), -- YVR-YYZ
-(9, 190), -- GRU-MEX
-(10, 230); -- LHR-EZE (International)
+(1, 150),
+(2, 200),
+(3, 180),
+(5, 170), -- RISOLTO: Ora commerciale per il volo 105
+(6, 220),
+(7, 160),
+(8, 210),
+(9, 190),
+(10, 230);
 
--- Insert rows into table 'Cargo'
+-- Insert rows into table 'Cargo' (Plane ID: 4)
 INSERT IGNORE INTO Cargo(plane_id)
 VALUES
-(4), -- EZE-LHR
-(5); -- CDG-FRA
+(4);
 
--- === 4. FLIGHTS, CLASSIFICATION, AND TICKET INVENTORY ===
+-- === 4. FLIGHTS AND CLASSIFICATION ===
 
 -- Insert rows into table 'Flights'
 INSERT IGNORE INTO Flights(flight_id, Aairport_id, Dairport_id, plane_id, plane_status)
 VALUES
 (101, 2, 1, 1, 'on time'),      -- LAX -> JFK (Domestic)
 (102, 4, 3, 2, 'delayed'),      -- YVR -> YYZ (Domestic)
-(103, 6, 5, 3, 'on time'),      -- GRU -> MEX (International)
+(103, 6, 5, 3, 'on time'),      -- GRU -> MEX (International, Commercial)
 (104, 8, 7, 4, 'cancelled'),    -- LHR -> EZE (International, Cargo)
-(105, 10, 9, 5, 'on time'),     -- FRA -> CDG (International, Cargo)
-(106, 12, 11, 6, 'delayed'),    -- MAD -> FCO (International)
+(105, 9, 10, 5, 'on time'),     -- CDG -> FRA (International, Commercial) -- RISOLTO
+(106, 11, 12, 6, 'delayed'),    -- FCO -> MAD (International, Commercial)
 (107, 1, 2, 7, 'on time'),      -- JFK -> LAX (Domestic)
 (108, 3, 4, 8, 'on time'),      -- YYZ -> YVR (Domestic)
 (109, 5, 6, 9, 'delayed'),      -- MEX -> GRU (International)
@@ -98,64 +104,49 @@ VALUES
 -- Insert rows into table 'Dom_flight'
 INSERT IGNORE INTO Dom_flight(flight_id)
 VALUES
-(101), -- LAX -> JFK (USA)
-(102), -- YVR -> YYZ (CANADA)
-(107), -- JFK -> LAX (USA)
-(108); -- YYZ -> YVR (CANADA)
+(101), (102), (107), (108);
 
 -- Insert rows into table 'Int_flight'
 INSERT IGNORE INTO Int_flight(flight_id)
 VALUES
-(103), -- GRU -> MEX
-(104), -- LHR -> EZE
-(105), -- FRA -> CDG
-(106), -- MAD -> FCO
-(109), -- MEX -> GRU
-(110); -- EZE -> LHR
+(103), (104), (105), (106), (109), (110);
 
 
--- Insert rows into table 'Tickets' (Inventory of available seats on commercial flights)
--- Flight 101 (Plane 1, 150 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (1, 101), (2, 101), (3, 101), (4, 101), (5, 101);
--- Flight 107 (Plane 7, 160 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (1, 107), (2, 107), (3, 107);
--- Flight 102 (Plane 2, 200 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (10, 102), (11, 102), (12, 102), (13, 102);
---Flight 108 (Plane 8, 210 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (20, 108), (21, 108);
--- Flight 103 (Plane 3, 180 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (30, 103), (31, 103), (32, 103);
--- Flight 109 (Plane 9, 190 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (40, 109), (41, 109);
--- Flight 106 (Plane 6, 220 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (50, 106), (51, 106);
--- Flight 110 (Plane 10, 230 seats)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (60, 110), (61, 110);
+-- === 5. TICKET INVENTORY (SeatAssignment & Tickets) ===
 
--- === 5. BOOKINGS AND SEAT ASSIGNMENTS (TRANSACTIONS) ===
+-- Crea l'inventario dei posti per voli commerciali e assegna loro una classe/prezzo
+-- Volo 101 (LAX -> JFK)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (1, 101), (2, 101), (3, 101);
+INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (1, 101, 'Economy'), (2, 101, 'Business'), (3, 101, 'FirstClass');
 
--- Insert rows into table 'SeatAssignment' (Defines class for sold/booked seats)
--- NOTE: (seat_id, flight_id) must exist in Tickets.
-INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class)
-VALUES
-(1, 101, 'Economy'),     -- John (user 3) is assigned this seat
-(3, 101, 'Business'),    -- Maria (user 4) is assigned this seat
-(10, 102, 'FirstClass'), -- Liam (user 5) is assigned this seat
-(2, 107, 'Economy');     -- Maria (user 4) is assigned this seat
-(50,106,'FirstClass'),  -- unbooked seat
-(51,106,'Business'),    -- unbooked seat
-(60,110,'Economy'),     -- unbooked seat
-(61,110,'FirstClass');  -- unbooked seat
+-- Volo 102 (YVR -> YYZ)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (10, 102), (11, 102);
+INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (10, 102, 'Economy'), (11, 102, 'FirstClass');
+
+-- Volo 103 (GRU -> MEX)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (20, 103), (21, 103);
+INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (20, 103, 'Economy'), (21, 103, 'Business');
+
+-- Volo 105 (CDG -> FRA) - RISOLTO
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (61, 105), (62, 105);
+INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (61, 105, 'Economy'), (62, 105, 'Business');
+
+-- Volo 106 (FCO -> MAD) - RISOLTO
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (51, 106), (52, 106), (53, 106);
+INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (51, 106, 'Economy'), (52, 106, 'Business'), (53, 106, 'FirstClass');
 
 
--- Insert rows into table 'Bookings' 
--- NOTE: (user_id) must exist in Customer, and (flight_id, seat_id) must exist in Tickets.
+-- Volo 107 (JFK -> LAX)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (40, 107), (41, 107);
+INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (40, 107, 'Economy'), (41, 107, 'Economy');
+
+
+-- === 6. BOOKINGS (Transazioni) ===
+
+-- Prenotazioni esistenti (user_id deve esistere in Customer; (flight_id, seat_id) deve esistere in Tickets)
 INSERT IGNORE INTO Bookings(user_id, flight_id, seat_id)
 VALUES
-(3, 101, 1),    -- John booked Economy on 101
-(4, 101, 3),    -- Maria booked Business on 101
-(5, 102, 10),   -- Liam booked FirstClass on 102
-(4, 107, 2);    -- Maria booked Economy on 107
-(3,106,50);   -- John booked FirstClass on 106
-(5,110,61);    -- Liam booked FirstClass on 110
-
+(3, 101, 1),    -- John (3) booked Economy on 101
+(4, 101, 2),    -- Maria (4) booked Business on 101
+(5, 102, 11),   -- Liam (5) booked FirstClass on 102
+(3, 107, 40);   -- John (3) booked Economy on 107
