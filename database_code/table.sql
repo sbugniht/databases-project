@@ -1,16 +1,20 @@
+drop table if exists Bookings;
 drop table if exists Admin;
 drop table if exists Customer;
-drop table if exists Bookings;
-drop table if exists Int_flight;
-drop table if exists Dom_flight;
+
 drop table if exists SeatAssignment;
 drop table if exists Tickets;
+
+drop table if exists Int_flight;
+drop table if exists Dom_flight;
 drop table if exists Flights;
-drop table if exists Users;
-drop table if exists Airport;
+
 drop table if exists Commercial;
 drop table if exists Cargo;
 drop table if exists Plane;
+drop table if exists Users;
+
+drop table if exists Airport;
 drop table if exists Fee;
 drop view if exists View_Price;
 drop table if exists classPrice;
@@ -128,7 +132,7 @@ CREATE TABLE Bookings (
     seat_id INT NOT NULL,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Customer(user_id),
-    FOREIGN KEY (flight_id,seat_id) REFERENCES Flights(flight_id,seat_id),
+    FOREIGN KEY (flight_id,seat_id) REFERENCES Flights(flight_id,seat_id)
     
 );
 
