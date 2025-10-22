@@ -121,7 +121,16 @@ INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (1, 101), (2, 101), (3, 10
 INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (1, 107), (2, 107), (3, 107);
 -- Flight 102 (Plane 2, 200 seats)
 INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (10, 102), (11, 102), (12, 102), (13, 102);
-
+--Flight 108 (Plane 8, 210 seats)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (20, 108), (21, 108);
+-- Flight 103 (Plane 3, 180 seats)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (30, 103), (31, 103), (32, 103);
+-- Flight 109 (Plane 9, 190 seats)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (40, 109), (41, 109);
+-- Flight 106 (Plane 6, 220 seats)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (50, 106), (51, 106);
+-- Flight 110 (Plane 10, 230 seats)
+INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (60, 110), (61, 110);
 
 -- === 5. BOOKINGS AND SEAT ASSIGNMENTS (TRANSACTIONS) ===
 
@@ -133,6 +142,10 @@ VALUES
 (3, 101, 'Business'),    -- Maria (user 4) is assigned this seat
 (10, 102, 'FirstClass'), -- Liam (user 5) is assigned this seat
 (2, 107, 'Economy');     -- Maria (user 4) is assigned this seat
+(50,106,'FirstClass'),  -- unbooked seat
+(51,106,'Business'),    -- unbooked seat
+(60,110,'Economy'),     -- unbooked seat
+(61,110,'FirstClass');  -- unbooked seat
 
 
 -- Insert rows into table 'Bookings' 
@@ -143,3 +156,6 @@ VALUES
 (4, 101, 3),    -- Maria booked Business on 101
 (5, 102, 10),   -- Liam booked FirstClass on 102
 (4, 107, 2);    -- Maria booked Economy on 107
+(3,106,50);   -- John booked FirstClass on 106
+(5,110,61);    -- Liam booked FirstClass on 110
+
