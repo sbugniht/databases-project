@@ -104,25 +104,9 @@ VALUES
 ('Business', 150),
 ('FirstClass', 300);
 
--- === 5. TICKET INVENTORY & SEAT ASSIGNMENT (POSTI) ===
 
--- Volo 105 (CDG -> FRA)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (61, 105), (62, 105);
-INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (61, 105, 'Economy'), (62, 105, 'Business');
 
--- Volo 106 (FCO -> MAD)
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (51, 106), (52, 106), (53, 106);
-INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (51, 106, 'Economy'), (52, 106, 'Business'), (53, 106, 'FirstClass');
 
--- Altri voli popolati per completezza
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (1, 101), (2, 101), (3, 101);
-INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (1, 101, 'Economy'), (2, 101, 'Business'), (3, 101, 'FirstClass');
-
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (10, 102), (11, 102);
-INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (10, 102, 'Economy'), (11, 102, 'FirstClass');
-
-INSERT IGNORE INTO Tickets(seat_id, flight_id) VALUES (40, 107), (41, 107);
-INSERT IGNORE INTO SeatAssignment(seat_id, flight_id, class) VALUES (40, 107, 'Economy'), (41, 107, 'Economy');
 
 
 -- === 6. BOOKINGS (Prenotazioni per testare la disponibilità) ===
@@ -131,3 +115,4 @@ INSERT IGNORE INTO Bookings(user_id, flight_id, seat_id)
 VALUES
 (3, 101, 1),    -- Posto 1 su volo 101 occupato
 (4, 101, 2);    -- Posto 2 su volo 101 occupato
+
