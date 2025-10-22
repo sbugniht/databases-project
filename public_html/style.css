@@ -387,3 +387,29 @@ footer a {
         text-align: left;
     }
 }
+
+/* --- NUOVO STILE PER BOTTONI DI LOGOUT/AZIONE NELL'HEADER --- */
+
+/* Stile base per il link di logout */
+.header-action-btn {
+    text-decoration: none;
+    background-color: var(--error-color); /* Rosso per azione di uscita/pericolo */
+    color: var(--text-light) !important;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.3s;
+    /* Assicura che sia sempre visibile e separato dalla nav */
+    margin-left: 20px; 
+}
+
+.header-action-btn:hover {
+    background-color: #a71d2a; /* Rosso più scuro al passaggio */
+    color: var(--text-light) !important;
+    border-bottom: none !important; /* Rimuove il bordo della nav:hover */
+}
+
+/* Modifica la navigazione per centrarla se non ci sono elementi a destra */
+header nav {
+    margin-left: auto; /* Spinge la nav a sinistra */
+}

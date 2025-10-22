@@ -9,11 +9,21 @@ if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard - SkyBook</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<header>
+    <div class="logo-wrapper">
+        <img src="images/logo.JPG" alt="SkyBook Logo" class="logo-image">
+        <div class="logo">SkyBook</div>
+    </div>
+
+    <nav>
+        </nav>
+    
+    <a href="logout.php" class="header-action-btn">Logout</a>
+</header>
 
 <h1>Welcome Admin, ID: <?php echo htmlspecialchars($_SESSION['user_id']); ?>!</h1>
 <p>Use this dashboard to manage flights.</p>
@@ -65,8 +75,4 @@ if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
     </form>
 </section>
 
-<br>
-<a href="logout.php">Logout</a>
-
-</body>
 </html>

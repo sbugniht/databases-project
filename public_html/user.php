@@ -80,11 +80,7 @@ $conn->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>User Dashboard - SkyBook</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
@@ -95,9 +91,11 @@ $conn->close();
     <nav>
       <ul>
         <li><a href="user.php" class="active">Search & Book</a></li>
-        <li><a href="logout.php">Logout</a></li>
-      </ul>
+        </ul>
     </nav>
+    
+    <a href="logout.php" class="header-action-btn">Logout</a>
+
   </header>
 
   <div class="user-container">
