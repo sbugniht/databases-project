@@ -132,7 +132,7 @@ CREATE TABLE Bookings (
     seat_id INT NOT NULL,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Customer(user_id),
-    FOREIGN KEY (flight_id,seat_id) REFERENCES Flights(flight_id,seat_id)
+    FOREIGN KEY (flight_id,seat_id) REFERENCES Tickets(flight_id,seat_id)
     
 );
 
