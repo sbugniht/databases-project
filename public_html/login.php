@@ -2,10 +2,10 @@
 session_start();
 
 $servername = "127.0.0.1";
-$username = "gbrugnara";
-$password = "KeRjnLwqj+rTTG3E";
+$username_db = "gbrugnara"; // Rinominato per non confonderlo con la variabile $user POST
+$password_db = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
-$conn = new mysqli($servername, $username, $password, $dbname, null, "/run/mysql/mysql.sock");
+$conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
 
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
@@ -14,23 +14,27 @@ if ($conn->connect_error) {
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $user = $_POST['username'];
-  $pass = $_POST['password'];
+  // L'utente inserisce l'ID e la Password
+  $user_id_input = $_POST['username']; // Questo campo è USER_ID nel tuo DB
+  $pass_input = $_POST['password'];
 
-  // Esempio tabella: Users(username, password, role)
-  $sql = "SELECT * FROM Users WHERE username=? AND password=?";
+  // Query corretta: cerca USER_ID (assumendo sia un intero) e pwd
+  // Nota: ho cambiato il tipo di bind da 'ss' a 'is' perché USER_ID è INT
+  $sql = "SELECT USER_ID, privilege, pwd FROM Users WHERE USER_ID=? AND pwd=?";
   $stmt = $conn->prepare($sql);
-  $stmt->bind_param("ss", $user, $pass);
+  $stmt->bind_param("is", $user_id_input, $pass_input); // 'i' per Integer (USER_ID), 's' per String (pwd)
   $stmt->execute();
   $result = $stmt->get_result();
 
   if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
-    $_SESSION['username'] = $row['username'];
-    $_SESSION['role'] = $row['role'];
+    
+    // Assegna le variabili di sessione usando i nomi reali del DB
+    $_SESSION['user_id'] = $row['USER_ID']; // Usiamo USER_ID per identificare l'utente
+    $_SESSION['privilege'] = $row['privilege']; // privilege è 1 (Admin) o 0 (Customer)
 
-    // Redirect in base al ruolo
-    if ($row['role'] === 'admin') {
+    // Redirect in base al ruolo (privilege 1 = admin)
+    if ((int)$row['privilege'] === 1) {
       header("Location: admin.php");
       exit();
     } else {
@@ -38,13 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       exit();
     }
   } else {
-    $message = "<p class='error'>Invalid username or password</p>";
+    $message = "<p class='error'>Invalid User ID or password</p>";
   }
 
   $stmt->close();
 }
 
 $conn->close();
+?>
 ?>
 
 <!DOCTYPE html>
