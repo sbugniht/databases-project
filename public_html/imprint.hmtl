@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Imprint - Project Name</title>
+  <title>Imprint - SkyBook</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <div class="logo">ProjectName</div>
+    <div class="logo">SkyBook</div>
     <nav>
       <ul>
         <li><a href="index.php">Home</a></li>
@@ -34,7 +34,7 @@
     <div> 
       Travel with us to discover beautiful destinations around the world! <p>
     
-    <img src="images/cannon.jpg" alt="Beautiful Destination" style="width:100%;max-width:600px;">
+    <img src="images/scout-promotion.jpg" alt="Beautiful Destination" style="width:100%;max-width:600px;">
   </main>
 
   <footer>
