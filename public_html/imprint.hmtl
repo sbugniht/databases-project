@@ -38,9 +38,9 @@
       Travel with us to discover beautiful destinations around the world! <p>
       </div>
     <div class="image-gallery"></div>
-    <img src="images/scout-promotion.jpg" alt="Beautiful Destination" style="width:100%;max-width:500px;max-height: 500px;">
-    <img src="images/IMG_1716.JPG" alt="City Skyline" style="width:100%;max-width:400px;max-height: 500px;">
-    <img src="images/4e64b2b4-51a2-4098-95d7-86acfe4e36c5.JPG" alt="Mountain Lake" style="width:100%;max-width:400px;max-height: 500px;">
+    <img src="images/scout-promotion.jpg" alt="Beautiful Destination" style="width:100%;max-width:550px;max-height: 450px;">
+    <img src="images/IMG_1716.JPG" alt="City Skyline" style="width:100%;max-width:400px;max-height: 450px;">
+    <img src="images/4e64b2b4-51a2-4098-95d7-86acfe4e36c5.JPG" alt="Mountain Lake" style="width:100%;max-width:400px;max-height: 450px;">
     </div>
   </main>
 
