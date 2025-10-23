@@ -327,15 +327,13 @@ table tr:hover {
 .airplane-layout {
     /* Mantiene le proprietà di scrolling orizzontale */
     overflow-x: auto; 
-    display: flex; 
-    flex-direction: column; /* Le righe scorrono in verticale, i posti in orizzontale */
-    gap: 5px; 
+     
     padding: 15px 10px;
     border: 2px solid #ddd;
     border-radius: var(--border-radius);
     background-color: #fcfcfc;
     margin-top: 20px;
-    width: 100%;
+    white-space: no wrap; /* Impedisce il wrap: ESSENZIALE per lo scroll orizzontale */
 }
 
 .seat-row {
@@ -343,7 +341,14 @@ table tr:hover {
     align-items: center;
     gap: 5px; 
     white-space: nowrap; /* Impedisce il wrap: ESSENZIALE per lo scroll orizzontale */
-    /* La riga deve essere contenuta in un elemento non flex per permettere lo scrolling, ma è gestito da overflow-x: auto sul parent */
+    margin-bottom: 5px;
+}
+
+/* Nuovo contenitore per tutte le righe */
+.seat-rows-container {
+    display: flex;
+    flex-direction: column; /* Le righe sono una sopra l'altra */
+    gap: 5px;
 }
 
 /* Indicatori */

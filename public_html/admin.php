@@ -205,6 +205,8 @@ $conn->close();
                             <div class="fuselage-marker">Fronte Aereo / Legenda: Reserved (Rosso) | Available (Verde)</div>
                             <div class="aisle-marker">Corridoio</div>
                             
+                            <div class="seat-rows-container">
+
                             <?php foreach ($simulated_seats as $row_index => $row): ?>
                                 <div class="seat-row">
                                     <div class="row-label"><?php echo $row_index + 1; ?></div>
@@ -222,7 +224,7 @@ $conn->close();
                                     <?php endforeach; ?>
                                 </div>
                             <?php endforeach; ?>
-                            <div class="fuselage-marker">Coda Aereo</div>
+                            </div> <div class="fuselage-marker">Coda Aereo</div>
                         </div>
                     <?php else: ?>
                         <p><?php echo $error_message ?: 'Seleziona un Volo per visualizzare i posti.'; ?></p>
