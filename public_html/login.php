@@ -67,7 +67,7 @@ $conn->close();
   </header>
 
   <div class="login-container">
-    <h2>Login</h2>
+    <h2>Login - credentials in homepage - under global destinations</h2>
     <form method="post" action="login.php">
       <input type="text" name="username" placeholder="Username" required>
       <input type="password" name="password" placeholder="Password" required>

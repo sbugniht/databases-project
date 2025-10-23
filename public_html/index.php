@@ -161,6 +161,7 @@ $conn->close();
     <div class="feature-card">
       <h3>Global Destinations</h3>
       <p>Book domestic and international flights easily from one platform.</p>
+      <p>admin credentials: 1 - admin01, user credentials: 3 - john123</p>
     </div>
     <div class="feature-card">
       <h3>Live Flight Status</h3>
