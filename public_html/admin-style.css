@@ -1,8 +1,6 @@
-/* =============================================== */
-/* === ADMIN DASHBOARD LAYOUT & SCROLLING === */
-/* =============================================== */
-
-/* COPIA DELLE VARIABILI BASE per assicurare il funzionamento */
+/*
+ * STILI GENERALI E VARIABILI
+ */
 :root {
     --primary-color: #ff3300; /* Rosso/Arancio Solido */
     --primary-hover: #b31e00;
@@ -15,222 +13,424 @@
     --success-color: #28a745;
     --error-color: #dc3545;
     --border-radius: 8px;
+    --feature-bg: #fff8e1; /* Sfondo giallognolo per Features */
+    --economy-class-color: #007bff; /* Blu per Economy */
+    --business-class-color: #fd7e14; /* Arancio per Business */
+    --first-class-color: #6f42c1; /* Viola per First */
 }
 
-/* --- ADMIN GRID CONTAINERS --- */
-.plane-inventory-container,
-.flight-management-grid {
-    display: grid;
-    gap: 20px;
-    margin-bottom: 25px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-/* GRID 1: Lista Aerei (1fr) | Mappa Posti (2fr) */
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+/*
+ * HEADER E LAYOUT PRINCIPALE
+ */
+header {
+    background-color: var(--background-dark);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 10px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 40px; 
+    margin-right: 10px;
+}
+
+.logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.header-action-btn {
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s;
+}
+
+.header-action-btn:hover {
+    background-color: #5a6268;
+}
+
+.results {
+    padding: 20px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+h2 {
+    color: var(--text-dark);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* Messaggi di Stato */
+.success, .error {
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.success {
+    background-color: #d4edda;
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+.error {
+    background-color: #f8d7da;
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+}
+
+/*
+ * GESTIONE INVENTARIO (Plane List & Seat Visualizer)
+ */
+.admin-management-content {
+    margin-top: 20px;
+}
+
 .plane-inventory-container {
-    grid-template-columns: 1fr 2fr; 
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* Permette il wrap su schermi piccoli */
 }
 
-/* GRID 2: Gestione Voli (Add/Remove) */
-.flight-management-grid {
-    grid-template-columns: 1fr 1fr; 
-}
-
-/* Stili delle Card Interne */
+/* Stili delle Card */
 .plane-list-card, .plane-seats-card, .form-card {
-    background-color: #fafafa;
+    background-color: var(--background-dark);
     padding: 20px;
     border-radius: var(--border-radius);
-    border: 1px solid #eee;
+    box-shadow: var(--card-shadow);
+    flex-grow: 1; 
 }
 
-.plane-list-card h3, .form-card h3 {
+/* Plane List Card (Aerei Attuali) */
+.plane-list-card {
+    flex-basis: 300px; /* Base per la lista verticale fittata */
+    min-width: 250px;
+}
+
+.plane-list-card h3 {
     color: var(--primary-color);
     margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
 }
 
 .plane-list-card ul {
     list-style: none;
-    padding-left: 0;
+    padding: 0;
 }
 
-.plane-list-card li {
-    padding: 5px 0;
-    border-bottom: 1px dotted #f0f0f0;
+.plane-list-card ul li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.9em;
 }
 
-/* Moduli di Gestione (Add/Remove) */
-.flight-form {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 10px;
-}
-
-.flight-form label {
-    grid-column: 1 / 2;
-    text-align: right;
-    align-self: center;
-    font-weight: 600;
-}
-
-.flight-form input,
-.flight-form select {
-    /* Questi stili sono ripristinati per le select/input nell'admin */
-    width: 100%; 
-    grid-column: 2 / 3;
-    padding: 8px 10px;
-}
-.flight-form button {
-    grid-column: 1 / 3;
-    margin-top: 15px;
+.plane-list-card ul li:last-child {
+    border-bottom: none;
 }
 
 
-/* --- VOLI SCORREVOLI (VERTICALE) --- */
-.scrollable-table-container {
-    /* FIX: Assicura la scrollabilità verticale della tabella */
-    max-height: 250px; 
-    overflow-y: auto; 
-    border: 1px solid #ddd;
-    border-radius: var(--border-radius);
-    margin-top: 10px;
-}
-
-.flight-list-scroll-wrapper {
-    /* FIX: Assicura che i due box (tabella e feedback) stiano affiancati quando possibile */
-    display: flex; 
-    gap: 20px;
-    margin-bottom: 25px;
-}
-.flight-list-scroll-wrapper > div {
-    flex: 1; 
-}
-
-.scrollable-table-container table {
-    width: 100%;
-    min-width: 600px; /* Assicura che la tabella sia abbastanza larga */
-    margin-top: 0;
-}
-
-
-/* =============================================== */
-/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE FIX) --- */
-/* =============================================== */
-
+/* Seat Visualizer Card */
 .plane-seats-card {
-    overflow: hidden; 
+    flex-basis: calc(70% - 20px); /* Occupa circa 70% in affiancamento */
+    min-width: 400px; 
+    overflow: hidden; /* Nasconde l'overflow della card stessa */
+}
+
+.plane-seats-card p {
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+}
+
+.seat-selection-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.full-width-select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex-grow: 1;
+}
+
+/*
+ * LAYOUT POSTI (Seat Visualizer)
+ */
+.seat-map-placeholder {
+    padding: 10px 0;
 }
 
 .airplane-layout {
-    /* Abilita lo scrolling orizzontale */
-    overflow-x: auto; 
-    padding: 15px 10px;
-    border: 2px solid #ddd;
+    overflow-x: auto; /* Scroll orizzontale per i posti */
+    white-space: nowrap; /* Mantiene gli elementi in linea */
+    padding: 10px 0;
+    background-color: var(--feature-bg);
     border-radius: var(--border-radius);
-    background-color: #fcfcfc;
-    margin-top: 20px;
-    
-    /* Contiene gli indicatori e le righe: impila verticalmente */
-    display: flex; 
-    flex-direction: column;
+    border: 1px solid #ffe082;
 }
 
-/* Contenitore interno che FORZA la larghezza orizzontale */
+.fuselage-marker {
+    text-align: center;
+    font-size: 0.75em;
+    color: var(--secondary-color);
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.aisle-marker {
+    text-align: center;
+    font-size: 0.8em;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+    font-style: italic;
+    width: 100%; /* Larghezza completa sopra le righe */
+}
+
 .seat-rows-container {
-    /* FIX CRITICO: Forza il contenitore ad agire come un unico elemento largo */
-    display: inline-flex; 
+    display: flex;
     flex-direction: column; 
-    gap: 5px;
+    gap: 10px;
+    padding: 10px 20px;
 }
 
 .seat-row {
     display: flex;
     align-items: center;
-    gap: 5px; 
-    
-    /* ESSENZIALE: impedisce ai posti di andare a capo */
-    white-space: nowrap; 
-    margin-bottom: 5px;
-    
-    /* Garantisce che la riga intera scorra orizzontalmente */
-    flex-shrink: 0; 
+    gap: 5px; /* Spazio tra i posti */
 }
 
-/* Indicatori */
-.aisle-marker {
-    text-align: left;
-    margin-left: 55px; 
-    padding-left: 0;
-    font-size: 0.7em;
-    font-weight: 600;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-}
-
-.fuselage-marker {
-    text-align: center;
-    font-size: 0.8em;
-    color: var(--secondary-color);
-    padding: 5px 0;
-    border-bottom: 1px dashed #eee;
-}
-.fuselage-marker:last-of-type {
-    border-top: 1px dashed #eee;
-    border-bottom: none;
-}
 .row-label {
-    font-weight: 700;
+    font-weight: bold;
     color: var(--text-dark);
-    margin-right: 15px;
-    min-width: 20px;
+    width: 20px; /* Larghezza fissa per il numero di riga */
     text-align: right;
+    margin-right: 10px;
+}
+
+.seat-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 4px;
+    border: none;
+    color: var(--text-light);
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    transition: transform 0.1s;
+}
+
+/* Classe per creare il corridoio (dopo il 3° posto) */
+.has-aisle {
+    margin-right: 20px; /* Spazio per il corridoio */
+}
+
+/* Stati dei Posti */
+.available {
+    background-color: var(--success-color); /* Verde */
+}
+
+.reserved {
+    background-color: var(--error-color); /* Rosso */
+}
+
+.seat-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* Classi Posti (per Title nel PHP, ma usiamo il colore di stato per il colore principale) */
+.economy {
+    /* No styling needed, status determines color, but we can use border for class differentiation */
+    border: 2px solid var(--economy-class-color); 
+}
+.business {
+    border: 2px solid var(--business-class-color);
+}
+.first {
+    border: 2px solid var(--first-class-color);
+}
+
+
+/*
+ * SEZIONE VOLI ESISTENTI
+ */
+
+.flight-list-scroll-wrapper {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.full-width-card {
+    flex-basis: 50%;
+    min-width: 45%;
+}
+
+.scrollable-table-container {
+    max-height: 400px;
+    overflow-y: auto; /* Scroll verticale per la tabella voli */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--background-dark);
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    z-index: 10;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
     font-size: 0.9em;
 }
 
+tbody tr:hover {
+    background-color: #f7f7f7;
+}
 
-/* Posti (Bottoni) */
-.seat-btn {
-    flex-shrink: 0; 
-    width: 30px; /* FIX: Ripristina le dimensioni fisse */
-    height: 30px;
-    border: none;
+/*
+ * SEZIONE GESTIONE VOLI (Form)
+ */
+.flight-management-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.form-card {
+    flex-basis: calc(50% - 10px);
+    min-width: 300px;
+}
+
+.flight-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.flight-form label {
+    font-weight: bold;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.flight-form input, .flight-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    cursor: default;
-    font-size: 0.75em;
-    font-weight: 700;
-    text-align: center;
-    line-height: 30px;
-    padding: 0;
+    font-size: 1em;
 }
 
-.seat-btn.available {
-    background-color: var(--success-color); /* FIX: Colore da variabile */
+.btn-primary, .btn-secondary {
+    padding: 12px;
+    border: none;
+    border-radius: var(--border-radius);
     color: var(--text-light);
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.3s;
 }
 
-.seat-btn.reserved {
-    background-color: var(--error-color); /* FIX: Colore da variabile */
-    color: var(--text-light);
+.btn-primary {
+    background-color: var(--primary-color);
 }
 
-.seat-btn.has-aisle {
-    margin-right: 20px; /* Larghezza del corridoio */
+.btn-primary:hover {
+    background-color: var(--primary-hover);
 }
 
-.seat-btn.firstclass { border: 2px solid gold; }
-.seat-btn.business { border: 2px solid silver; }
-.seat-btn.economy { border: 2px solid #bbb; }
+.btn-secondary {
+    background-color: var(--secondary-color);
+}
 
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
 
-/* --- RESPONSIVENESS ADMIN PAGE --- */
+hr {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 30px 0;
+}
+
+/* Media Query per layout responsivo */
 @media (max-width: 900px) {
-    /* Forze le griglie in colonna su schermi medi */
-    .flight-management-grid,
-    .plane-inventory-container,
-    .flight-list-scroll-wrapper {
-        grid-template-columns: 1fr; 
-        display: flex; 
+    .plane-inventory-container, .flight-list-scroll-wrapper, .flight-management-grid {
         flex-direction: column;
+    }
+    
+    .plane-list-card, .plane-seats-card, .full-width-card, .form-card {
+        flex-basis: 100%;
+        min-width: unset;
+    }
+
+    header {
+        padding: 10px 20px;
+    }
+
+    .results {
+        padding: 20px;
+    }
+
+    .seat-row {
+        gap: 3px; 
+    }
+
+    .has-aisle {
+        margin-right: 15px;
     }
 }
