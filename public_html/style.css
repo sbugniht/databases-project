@@ -367,3 +367,156 @@ footer a {
         margin-bottom: 15px;
     }
 }
+/* =============================================== */
+/* === SEAT MAP STYLES (User Page) === */
+/* =============================================== */
+:root {
+    /* Aggiungi le classi di posto al tuo root se non ci sono */
+    --economy-class-color: #007bff; /* Blu per Economy */
+    --business-class-color: #fd7e14; /* Arancio per Business */
+    --first-class-color: #6f42c1; /* Viola per First */
+}
+
+.flight-map-container {
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    background-color: var(--background-light);
+}
+
+.flight-map-container h3 {
+    color: var(--text-dark);
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 5px;
+    text-align: left;
+}
+
+.airplane-layout {
+    overflow-x: auto; /* Scroll orizzontale per l'aereo */
+    padding: 10px 0;
+    background-color: var(--feature-bg);
+    border-radius: var(--border-radius);
+    border: 1px solid #ffe082;
+}
+
+.fuselage-marker {
+    text-align: center;
+    font-size: 0.75em;
+    color: var(--secondary-color);
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.aisle-marker {
+    text-align: center;
+    font-size: 0.8em;
+    color: var(--secondary-color);
+    margin: 5px 0;
+    font-style: italic;
+}
+
+/* CHIAVE 1: Dispone le righe una di fianco all'altra (Orizzontale) */
+.seat-rows-container {
+    display: flex;
+    flex-direction: row; 
+    gap: 15px;
+    padding: 10px 20px;
+    align-items: flex-start;
+}
+
+/* CHIAVE 2: Ogni riga ora è una colonna di sedili (Verticale) */
+.seat-row {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    gap: 5px;
+    flex-wrap: nowrap; 
+    flex-shrink: 0;
+}
+
+.row-label {
+    font-weight: bold;
+    color: var(--text-dark);
+    width: 100%; 
+    text-align: center;
+    margin-bottom: 5px; 
+    flex-shrink: 0; 
+}
+
+.seat-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 4px;
+    border: none;
+    color: var(--text-light);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    transition: transform 0.1s, box-shadow 0.2s;
+    flex-shrink: 0;
+    cursor: pointer; /* Aggiunto cursor pointer */
+}
+
+/* Corridoio Verticale (margin-top da applicare al sedile 4/D) */
+.has-aisle {
+    margin-top: 15px; 
+}
+
+/* Stati e Classi */
+.available {
+    background-color: var(--success-color); /* Verde */
+}
+
+.reserved {
+    background-color: var(--error-color); /* Rosso */
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.seat-btn.available:hover, .seat-btn.selected {
+    box-shadow: 0 0 0 3px var(--primary-color);
+    transform: scale(1.05);
+}
+
+.economy {
+    border: 2px solid var(--economy-class-color); 
+}
+.business {
+    border: 2px solid var(--business-class-color);
+}
+.first {
+    border: 2px solid var(--first-class-color);
+}
+
+/* --- BOOKING SUMMARY CARD --- */
+.summary-card {
+    background-color: var(--background-dark);
+    padding: 20px;
+    margin: 30px auto;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    max-width: 400px;
+    text-align: left;
+    border-left: 5px solid var(--primary-color);
+}
+
+.summary-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.summary-card p {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+#booking-form button {
+    width: 100%;
+    margin-top: 20px;
+}

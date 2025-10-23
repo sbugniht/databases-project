@@ -37,7 +37,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         $sql = "
             SELECT 
                 VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, 
-                T.seat_id, SA.class, CP.PRICE
+                T.seat_id, SA.class, CP.PRICE,
+                B.booking_id IS NOT NULL AS is_reserved,
+                VSF.plane_id
             FROM View_SearchFlights VSF
             JOIN Tickets T ON VSF.flight_id = T.flight_id
             JOIN SeatAssignment SA ON T.flight_id = SA.flight_id AND T.seat_id = SA.seat_id
@@ -46,12 +48,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
             WHERE 
                 (UPPER(VSF.dep_city) = UPPER(?) OR UPPER(VSF.dep_iata) = UPPER(?))
                 AND (UPPER(VSF.arr_city) = UPPER(?) OR UPPER(VSF.arr_iata) = UPPER(?))
-                AND B.booking_id IS NULL -- Esclude i posti già prenotati
-            ORDER BY VSF.flight_id, SA.class, T.seat_id
+            ORDER BY VSF.flight_id, T.seat_id
         ";
 
         $stmt = $conn->prepare($sql);
         
+        $search_results = [];
+        $flights_for_display = []; // Nuovo array per la visualizzazione grafica
+        $seats_per_row = 6; // Definisci la tua riga standard (come nell'admin)
+
         if ($stmt === false) {
             $message = "<p class='error'>SQL Prepare failed: " . $conn->error . "</p>"; 
         } else {
@@ -60,11 +65,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
             $stmt->execute();
             $result = $stmt->get_result();
 
-            if ($result->num_rows > 0) {
+        if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
-                    $search_results[] = $row;
+                    $flight_id = $row['flight_id'];
+                    $seat_index = (int)$row['seat_id'] - 1; // Indice a base zero
+
+                    // Inizializza il volo se non esiste
+                    if (!isset($flights_for_display[$flight_id])) {
+                        $flights_for_display[$flight_id] = [
+                            'info' => [
+                                'flight_id' => $row['flight_id'],
+                                'route' => $row['dep_city'] . ' &rarr; ' . $row['arr_city'],
+                                'dep_iata' => $row['dep_iata'],
+                                'arr_iata' => $row['arr_iata'],
+                            ],
+                            'seats' => [],
+                        ];
+                    }
+
+                    // Calcola la riga e la posizione all'interno della riga
+                    $row_index = floor($seat_index / $seats_per_row);
+                    
+                    // Inizializza la riga se non esiste
+                    if (!isset($flights_for_display[$flight_id]['seats'][$row_index])) {
+                        $flights_for_display[$flight_id]['seats'][$row_index] = [];
+                    }
+
+                    // Aggiunge il posto
+                    $flights_for_display[$flight_id]['seats'][$row_index][] = [
+                        'number' => $row['seat_id'],
+                        'status' => $row['is_reserved'] ? 'reserved' : 'available',
+                        'class' => $row['class'],
+                        'price' => $row['PRICE'],
+                    ];
                 }
-                $message = "<p class='success'>Flights and available seats found. Ready to book.</p>";
+                $message = "<p class='success'>Flights found. Click an available seat to book!</p>";
             } else {
                 $message = "<p class='error'>No available seats found for the selected route.</p>";
             }
@@ -128,37 +163,107 @@ $conn->close();
       ?>
     </div>
 
-    <?php if (!empty($search_results)): ?>
+   <?php if (!empty($flights_for_display)): ?>
     <div class="results">
-      <h2>Available Seats</h2>
-      <table>
-        <tr>
-          <th>Flight ID</th>
-          <th>Route</th>
-          <th>Seat ID</th>
-          <th>Class</th>
-          <th>Base Price</th>
-          <th>Action</th>
-        </tr>
-        <?php foreach ($search_results as $flight): ?>
-        <tr>
-          <td><?php echo htmlspecialchars($flight['flight_id']); ?></td>
-          <td><?php echo htmlspecialchars($flight['dep_city']) . ' &rarr; ' . htmlspecialchars($flight['arr_city']); ?></td>
-          <td><?php echo htmlspecialchars($flight['seat_id']); ?></td>
-          <td><?php echo htmlspecialchars($flight['class']); ?></td>
-          <td><?php echo htmlspecialchars($flight['PRICE']) . ' €'; ?></td>
-          <td>
-            <form method="post" action="book_flight.php" style="margin: 0;">
-              <input type="hidden" name="flight_id" value="<?php echo htmlspecialchars($flight['flight_id']); ?>">
-              <input type="hidden" name="seat_id" value="<?php echo htmlspecialchars($flight['seat_id']); ?>">
-              <button type="submit" class="btn-primary">Book Now</button>
-            </form>
-          </td>
-        </tr>
-        <?php endforeach; ?>
-      </table>
+      <h2>Available Seats & Booking</h2>
+      
+      <div id="booking-summary" class="summary-card" style="display: none;">
+          <h3>Booking Confirmation</h3>
+          <p id="summary-flight"></p>
+          <p>Seat: <strong id="summary-seat-number"></strong> (<span id="summary-seat-class"></span>)</p>
+          <p>Price: <strong id="summary-price"></strong> €</p>
+          
+          <form method="post" action="book_flight.php" id="booking-form">
+              <input type="hidden" name="flight_id" id="form-flight-id">
+              <input type="hidden" name="seat_id" id="form-seat-id">
+              <button type="submit" class="btn-primary">Confirm Booking</button>
+          </form>
+      </div>
+      
+      <?php foreach ($flights_for_display as $flight_data): 
+          $info = $flight_data['info'];
+          $simulated_seats = $flight_data['seats'];
+      ?>
+      <div class="flight-map-container">
+          <h3>Volo ID <?php echo htmlspecialchars($info['flight_id']) . ': ' . $info['dep_iata'] . ' &rarr; ' . $info['arr_iata']; ?></h3>
+          
+          <div class="airplane-layout">
+              <div class="fuselage-marker">Fronte Aereo / Legenda: Reserved (Rosso) | Available (Verde)</div>
+              <div class="aisle-marker">Corridoio</div>
+
+              <div class="seat-rows-container">
+                  <?php foreach ($simulated_seats as $row_index => $row): ?>
+                      <div class="seat-row">
+                          <div class="row-label"><?php echo $row_index + 1; ?></div>
+                          <?php 
+                          $seat_in_row_counter = 0;
+                          foreach ($row as $seat): 
+                              $seat_in_row_counter++;
+                              // Corridoio dopo il 3° posto (per layout orizzontale)
+                              $gap_class = ($seat_in_row_counter === 4) ? 'has-aisle' : '';
+                              
+                              // Aggiunta la classe 'bookable' per JS
+                              $is_bookable = $seat['status'] === 'available' ? ' bookable' : '';
+                          ?>
+                              <button 
+                                  class="seat-btn <?php echo $seat['status'] . $is_bookable; ?> <?php echo strtolower($seat['class']); ?> bookable" 
+                                  title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class'] . ' | Price: ' . $seat['price'] . ' €'; ?>"
+                                  data-flight-id="<?php echo htmlspecialchars($info['flight_id']); ?>"
+                                  data-seat-num="<?php echo htmlspecialchars($seat['number']); ?>"
+                                  data-seat-class="<?php echo htmlspecialchars($seat['class']); ?>"
+                                  data-price="<?php echo htmlspecialchars($seat['price']); ?>"
+                                  data-route="<?php echo htmlspecialchars($info['route']); ?>"
+                                  <?php echo $seat['status'] === 'reserved' ? 'disabled' : ''; ?>>
+                                  <?php echo htmlspecialchars($seat['number']); ?>
+                              </button>
+                          <?php endforeach; ?>
+                      </div>
+                  <?php endforeach; ?>
+              </div> 
+              <div class="fuselage-marker">Coda Aereo</div>                    
+          </div>
+      </div>
+      <?php endforeach; ?>
     </div>
     <?php endif; ?>
   </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const summaryCard = document.getElementById('booking-summary');
+        const bookableSeats = document.querySelectorAll('.seat-btn.bookable');
+
+        bookableSeats.forEach(button => {
+            button.addEventListener('click', (event) => {
+                // 1. Rimuovi evidenziazione da tutti
+                document.querySelectorAll('.seat-btn.selected').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // 2. Evidenzia il posto cliccato
+                event.currentTarget.classList.add('selected');
+
+                // 3. Popola il riepilogo
+                const flightId = event.currentTarget.dataset.flightId;
+                const seatNum = event.currentTarget.dataset.seatNum;
+                const seatClass = event.currentTarget.dataset.seatClass;
+                const price = event.currentTarget.dataset.price;
+                const route = event.currentTarget.dataset.route;
+
+                document.getElementById('summary-flight').textContent = `Flight ID ${flightId}: ${route}`;
+                document.getElementById('summary-seat-number').textContent = seatNum;
+                document.getElementById('summary-seat-class').textContent = seatClass;
+                document.getElementById('summary-price').textContent = price;
+                
+                document.getElementById('form-flight-id').value = flightId;
+                document.getElementById('form-seat-id').value = seatNum;
+
+                // 4. Mostra il riepilogo
+                summaryCard.style.display = 'block';
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    });
+  </script>
 </body>
 </html>
