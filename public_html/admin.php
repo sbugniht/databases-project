@@ -277,7 +277,11 @@ $conn->close();
         <hr>
 
         <h2>Manage Flights</h2>
-        <div class="flight-management-grid">
+            <div class="flight-management-grid">
+                <div class="form-card">...</div> 
+                <div class="form-card">...</div> 
+            </div>
+                </section>
             
             <div class="form-card">
                 <h3>Add New Flight</h3>
