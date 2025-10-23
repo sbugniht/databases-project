@@ -461,11 +461,41 @@ header nav {
     grid-template-columns: 1fr 2fr; /* Lista stretta, Schema Posti più largo */
 }
 
-.plane-list-card, .plane-seats-card, .form-card {
+.plane-list-card, .form-card {
     background-color: #fafafa;
     padding: 20px;
     border-radius: var(--border-radius);
     border: 1px solid #eee;
+}
+/* --- MODIFICHE PER SCROLLING POSTI IN ADMIN.PHP --- */
+
+.plane-seats-card {
+    /* Assicurati che il contenitore della card sia visibile e non si espanda troppo */
+    overflow: hidden; /* Nasconde il contenuto che eccede la card stessa */
+}
+
+.airplane-layout {
+    /* Rimuovi la colonna verticale e consenti lo scorrimento orizzontale */
+    flex-direction: column; 
+    gap: 5px; 
+    padding: 15px 10px;
+    border: 2px solid #ddd;
+    border-radius: var(--border-radius);
+    background-color: #fcfcfc;
+    
+    /* ABILITA LO SCROLLING ORIZZONTALE QUANDO IL CONTENUTO È TROPPO GRANDE */
+    overflow-x: auto; 
+    
+    margin-top: 20px;
+}
+
+.seat-row {
+    /* Assicura che la riga resti compatta */
+    display: flex;
+    align-items: center;
+    gap: 3px; 
+    /* Impedisce che le righe vadano a capo, forzando lo scrolling */
+    flex-shrink: 0; 
 }
 
 .plane-list-card h3, .form-card h3 {
@@ -531,20 +561,6 @@ header nav {
         grid-template-columns: 1fr; /* Una colonna su mobile */
     }
 }
-/* --- LAYOUT AGGIUNTIVO PER ADMIN.PHP: NUOVE REGOLE PER MAPPA POSTI --- */
-
-/* Contenitore della Mappa dei Posti */
-.airplane-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 5px; /* Spazio tra le file */
-    padding: 15px 10px;
-    border: 2px solid #ddd;
-    border-radius: var(--border-radius);
-    background-color: #fcfcfc;
-    overflow-x: auto; /* Per schermi piccoli */
-    margin-top: 20px;
-}
 
 /* Indicatore di Cabina/Coda */
 .fuselage-marker {
@@ -571,13 +587,6 @@ header nav {
     padding-left: 70px; /* Spazio per A, B, C */
 }
 
-
-/* Riga di Posti */
-.seat-row {
-    display: flex;
-    align-items: center;
-    gap: 3px; /* Spazio tra i posti affiancati */
-}
 
 /* Etichetta della Riga (1, 2, 3...) */
 .row-label {

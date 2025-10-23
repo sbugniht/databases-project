@@ -42,21 +42,31 @@ if ($result_planes) {
     }
 }
 
-// 2. FETCH DATI VOLI (NUOVO per il controllo doppioni)
+
+// 2. FETCH DATI VOLI (NUOVO e CORRETTO)
 $flights = [];
+$existing_flights = []; // Variabile per popolare le tendine
 $sql_flights = "
     SELECT 
         flight_id, 
-        departure_airport_id, 
-        arrival_airport_id, 
-        status
-    FROM Flight
+        dep_iata, 
+        dep_city, 
+        arr_iata, 
+        arr_city, 
+        plane_id, 
+        plane_status
+    FROM View_SearchFlights
     ORDER BY flight_id DESC;
 ";
 $result_flights = $conn->query($sql_flights);
 if ($result_flights) {
     while ($row = $result_flights->fetch_assoc()) {
         $flights[] = $row;
+        // Prepara la lista per le tendine (ID Volo: JFK -> LAX)
+        $existing_flights[] = [
+            'id' => $row['flight_id'],
+            'label' => $row['flight_id'] . ': ' . $row['dep_iata'] . ' (' . $row['dep_city'] . ') -> ' . $row['arr_iata'] . ' (' . $row['arr_city'] . ')'
+        ];
     }
 }
 
@@ -208,41 +218,41 @@ $conn->close();
         <hr>
         
         <h2>Existing Flight IDs</h2>
-        <div class="plane-inventory-container">
-            <div class="plane-list-card">
-                <h3>Voli Attuali</h3>
-                <?php if (!empty($flights)): ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID Volo</th>
-                                <th>Partenza</th>
-                                <th>Arrivo</th>
-                                <th>Stato</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($flights as $flight): ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($flight['flight_id']); ?></strong></td>
-                                    <td><?php echo htmlspecialchars($flight['departure_airport_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($flight['arrival_airport_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($flight['status']); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php else: ?>
-                    <p>Nessun volo trovato.</p>
-                <?php endif; ?>
-            </div>
-            <div class="plane-seats-card">
-                <p>Controlla l'ID nella tabella a sinistra per evitare doppioni prima di creare un nuovo volo.</p>
-                <p>Ricorda di reindirizzare sempre a `admin.php?success=1` o `admin.php?error=...` da `manage_flights.php` per vedere i messaggi di conferma/errore qui.</p>
-            </div>
-        </div>
-        <hr>
-
+<div class="plane-inventory-container">
+    <div class="plane-list-card">
+        <h3>Voli Attuali</h3>
+        <?php if (!empty($flights)): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Volo</th>
+                        <th>Partenza</th>
+                        <th>Arrivo</th>
+                        <th>Aereo ID</th>
+                        <th>Stato</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($flights as $flight): ?>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($flight['flight_id']); ?></strong></td>
+                            <td><?php echo htmlspecialchars($flight['dep_iata']) . ' (' . htmlspecialchars($flight['dep_city']) . ')'; ?></td>
+                            <td><?php echo htmlspecialchars($flight['arr_iata']) . ' (' . htmlspecialchars($flight['arr_city']) . ')'; ?></td>
+                            <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
+                            <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>Nessun volo trovato.</p>
+        <?php endif; ?>
+    </div>
+    <div class="plane-seats-card">
+        <p>Controlla l'ID e la rotta nella tabella a sinistra prima di aggiungere un nuovo volo.</p>
+        <p>Ricorda di reindirizzare sempre a `admin.php?success=1` o `admin.php?error=...` da `manage_flights.php` per vedere i messaggi di conferma/errore qui.</p>
+    </div>
+</div>
         <h2>Manage Flights</h2>
         <div class="flight-management-grid">
             
@@ -281,16 +291,23 @@ $conn->close();
             </div>
 
             <div class="form-card">
-                <h3>Remove Existing Flight</h3>
-                <form method="post" action="manage_flights.php" class="flight-form">
-                    <input type="hidden" name="action" value="remove">
-                    
-                    <label for="remove_flight_id">Flight ID to Remove:</label>
-                    <input type="number" id="remove_flight_id" name="flight_id" required>
+            <h3>Remove Existing Flight</h3>
+            <form method="post" action="manage_flights.php" class="flight-form">
+                <input type="hidden" name="action" value="remove">
+                
+                <label for="remove_flight_id">Flight ID to Remove:</label>
+                <select id="remove_flight_id" name="flight_id" required class="full-width-select">
+                    <option value="">Seleziona Volo da Rimuovere</option>
+                    <?php foreach ($existing_flights as $flight): ?>
+                        <option value="<?php echo htmlspecialchars($flight['id']); ?>">
+                            <?php echo htmlspecialchars($flight['label']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
-                    <button type="submit" class="btn-secondary">Remove Flight</button>
-                </form>
-            </div>
+                <button type="submit" class="btn-secondary">Remove Flight</button>
+            </form>
+        </div>
         </div>
         
     </section>
