@@ -140,7 +140,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - SkyBook</title>
     <link rel="stylesheet" href="style.css"> 
-    <link rel="admin_style" href="admiin-style.css">
+    <link rel="admin_style" href="admin-style.css">
 </head>
 <body>
 
