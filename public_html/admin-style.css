@@ -60,10 +60,10 @@ header {
     color: var(--primary-color);
 }
 
-/* STILE BUTTONI HEADER E AZIONE */
+/* logout button */
 .header-action-btn {
-    /* Mantienuto grigio (secondary) come azione meno prioritaria di 'Add Flight' */
-    background-color: var(--secondary-color);
+    
+    background-color: var(--primary-color);
     color: var(--text-light);
     padding: 8px 15px;
     text-decoration: none;
@@ -72,7 +72,7 @@ header {
 }
 
 .header-action-btn:hover {
-    background-color: #5a6268;
+    background-color: var(--primary-hover);
 }
 
 .results {
@@ -86,14 +86,14 @@ h1 {
     margin-bottom: 5px;
 }
 
-/* 🚩 CORREZIONE 1: Assicura che la linea sia sotto il titolo H2 */
+
 h2 {
     color: var(--text-dark);
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 5px;
     margin-top: 30px;
     margin-bottom: 20px;
-    /* Rimosso display: block; se non c'è, è meglio non forzarlo */
+    
 }
 
 /* Messaggi di Stato */
@@ -376,7 +376,7 @@ tbody tr:hover {
     font-size: 1em;
 }
 
-/* 🚩 CORREZIONE 2: Stile coerente per i bottoni */
+
 .btn-primary, .btn-secondary {
     padding: 12px;
     border: none;
@@ -387,23 +387,23 @@ tbody tr:hover {
     margin-top: 15px;
     transition: background-color 0.3s;
 }
-
+/*add button styles*/
 .btn-primary {
-    /* Bottone principale (Add Flight) -> ROSSO */
+    
     background-color: var(--primary-color);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
 }
-
+/* remove button styles*/
 .btn-secondary {
-    /* Bottone secondario (Remove Flight) -> GRIGIO */
-    background-color: var(--secondary-color);
+    
+    background-color: var(--primary-color);
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background-color: var(--primary-hover);
 }
 
 hr {
