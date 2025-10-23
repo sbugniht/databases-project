@@ -226,7 +226,7 @@ $conn->close();
                             <?php endforeach; ?>
                                     
                             </div> <div class="fuselage-marker">Coda Aereo</div>                    
-                        </div><?php else: ?>
+                        </div> <?php else: ?>
                         <p><?php echo $error_message ?: 'Seleziona un Volo per visualizzare i posti.'; ?></p>
                     <?php endif; ?>
                 </div>
