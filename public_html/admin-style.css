@@ -1,0 +1,197 @@
+/* =============================================== */
+/* === ADMIN DASHBOARD LAYOUT & SCROLLING === */
+/* =============================================== */
+
+/* Prendi le variabili base da style.css */
+/* Non ripetiamo :root qui */
+
+/* --- ADMIN GRID CONTAINERS --- */
+.plane-inventory-container,
+.flight-management-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* GRID 1: Lista Aerei (1fr) | Mappa Posti (2fr) */
+.plane-inventory-container {
+    grid-template-columns: 1fr 2fr; 
+}
+
+/* GRID 2: Gestione Voli (Add/Remove) */
+.flight-management-grid {
+    grid-template-columns: 1fr 1fr; 
+}
+
+/* Stili delle Card Interne */
+.plane-list-card, .plane-seats-card, .form-card {
+    background-color: #fafafa;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    border: 1px solid #eee;
+}
+
+.plane-list-card h3, .form-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.plane-list-card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.plane-list-card li {
+    padding: 5px 0;
+    border-bottom: 1px dotted #f0f0f0;
+}
+
+/* Moduli di Gestione (Add/Remove) */
+.flight-form {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+}
+
+.flight-form label {
+    grid-column: 1 / 2;
+    text-align: right;
+    align-self: center;
+    font-weight: 600;
+}
+
+.flight-form input,
+.flight-form select {
+    grid-column: 2 / 3;
+    padding: 8px 10px;
+}
+.flight-form button {
+    grid-column: 1 / 3;
+    margin-top: 15px;
+}
+
+
+/* --- VOLI SCORREVOLI (VERTICALE) --- */
+.scrollable-table-container {
+    max-height: 250px; 
+    overflow-y: auto; 
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    margin-top: 10px;
+}
+.flight-list-scroll-wrapper {
+    display: flex; 
+    gap: 20px;
+    margin-bottom: 25px;
+}
+.flight-list-scroll-wrapper > div {
+    flex: 1; 
+}
+.scrollable-table-container table {
+    width: 100%;
+    min-width: 600px; 
+    margin-top: 0;
+}
+
+
+/* =============================================== */
+/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE FIX) --- */
+/* =============================================== */
+
+.plane-seats-card {
+    overflow: hidden; 
+}
+
+.airplane-layout {
+    /* Abilita lo scrolling orizzontale */
+    overflow-x: auto; 
+    padding: 15px 10px;
+    border: 2px solid #ddd;
+    border-radius: var(--border-radius);
+    background-color: #fcfcfc;
+    margin-top: 20px;
+    
+    /* Mantiene la struttura verticale (indicatori e righe) */
+    display: flex; 
+    flex-direction: column;
+}
+
+/* Contenitore interno che FORZA la larghezza orizzontale */
+.seat-rows-container {
+    /* FIX CRITICO: Forza il contenitore ad agire come un unico elemento largo */
+    display: inline-flex; 
+    flex-direction: column; 
+    gap: 5px;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 5px; 
+    
+    /* ESSENZIALE: impedisce ai posti di andare a capo */
+    white-space: nowrap; 
+    margin-bottom: 5px;
+    
+    /* Garantisce che la riga intera scorra orizzontalmente */
+    flex-shrink: 0; 
+}
+
+/* Indicatori */
+.aisle-marker {
+    text-align: left;
+    margin-left: 55px; 
+    padding-left: 0;
+    font-size: 0.7em;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+/* Posti */
+.seat-btn {
+    flex-shrink: 0; 
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: default;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-align: center;
+    line-height: 30px;
+    padding: 0;
+}
+
+.seat-btn.available {
+    background-color: var(--success-color); 
+    color: var(--text-light);
+}
+
+.seat-btn.reserved {
+    background-color: var(--error-color); 
+    color: var(--text-light);
+}
+
+.seat-btn.has-aisle {
+    margin-right: 20px; /* Larghezza del corridoio */
+}
+
+.seat-btn.firstclass { border: 2px solid gold; }
+.seat-btn.business { border: 2px solid silver; }
+.seat-btn.economy { border: 2px solid #bbb; }
+
+
+/* --- RESPONSIVENESS ADMIN PAGE --- */
+@media (max-width: 900px) {
+    /* Forze le griglie in colonna su schermi medi */
+    .flight-management-grid,
+    .plane-inventory-container,
+    .flight-list-scroll-wrapper {
+        grid-template-columns: 1fr; 
+        display: flex; /* Passa a Flexbox per un migliore stack */
+        flex-direction: column;
+    }
+}
