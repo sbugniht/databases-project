@@ -1,5 +1,5 @@
 /*
- * STILI GENERALI E VARIABILI
+ * STILI GENERALI E VARIABILI (NESSUNA MODIFICA)
  */
 :root {
     --primary-color: #ff3300; /* Rosso/Arancio Solido */
@@ -60,7 +60,9 @@ header {
     color: var(--primary-color);
 }
 
+/* STILE BUTTONI HEADER E AZIONE */
 .header-action-btn {
+    /* Mantienuto grigio (secondary) come azione meno prioritaria di 'Add Flight' */
     background-color: var(--secondary-color);
     color: var(--text-light);
     padding: 8px 15px;
@@ -84,21 +86,23 @@ h1 {
     margin-bottom: 5px;
 }
 
+/* 🚩 CORREZIONE 1: Assicura che la linea sia sotto il titolo H2 */
 h2 {
     color: var(--text-dark);
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 5px;
     margin-top: 30px;
     margin-bottom: 20px;
+    /* Rimosso display: block; se non c'è, è meglio non forzarlo */
 }
 
-/* Messaggi di Stato (A fianco ai Voli Attuali) */
+/* Messaggi di Stato */
 .success, .error {
     padding: 15px;
     border-radius: var(--border-radius);
-    margin-bottom: 0; /* Rimosso margin-bottom per affiancamento */
+    margin-bottom: 0; 
     font-weight: bold;
-    align-self: flex-start; /* Allinea in alto nel flex container */
+    align-self: flex-start;
 }
 
 .success {
@@ -136,9 +140,9 @@ h2 {
     flex-grow: 1; 
 }
 
-/* Plane List Card (Aerei Attuali) */
+/* Plane List Card */
 .plane-list-card {
-    flex-basis: 300px; /* Base fissa a sinistra */
+    flex-basis: 300px;
     min-width: 250px;
 }
 
@@ -165,7 +169,7 @@ h2 {
 
 /* Seat Visualizer Card */
 .plane-seats-card {
-    flex-basis: calc(100% - 320px); /* Il resto dello spazio */
+    flex-basis: calc(100% - 320px);
     min-width: 400px; 
     overflow: hidden; 
 }
@@ -190,15 +194,9 @@ h2 {
     flex-grow: 1;
 }
 
-/*
- * LAYOUT POSTI (Horizontal Aircraft Layout)
- */
-.seat-map-placeholder {
-    padding: 10px 0;
-}
-
+/* LAYOUT POSTI (Horizontal Aircraft Layout - Nessuna modifica) */
 .airplane-layout {
-    overflow-x: auto; /* Scroll orizzontale per l'aereo */
+    overflow-x: auto;
     padding: 10px 0;
     background-color: var(--feature-bg);
     border-radius: var(--border-radius);
@@ -223,23 +221,21 @@ h2 {
     font-style: italic;
 }
 
-/* 🔄 CHIAVE 1: Dispone le righe una di fianco all'altra (Orizzontale) */
 .seat-rows-container {
     display: flex;
     flex-direction: row; 
-    gap: 15px; /* Spazio tra le righe (che ora sono colonne) */
+    gap: 15px;
     padding: 10px 20px;
     align-items: flex-start;
 }
 
-/* 🔄 CHIAVE 2: Ogni riga ora è una colonna di sedili (Verticale) */
 .seat-row {
     display: flex; 
     flex-direction: column; 
     align-items: center;
-    gap: 5px; /* Spazio tra i posti in verticale */
+    gap: 5px;
     flex-wrap: nowrap; 
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
 .row-label {
@@ -266,18 +262,16 @@ h2 {
     flex-shrink: 0;
 }
 
-/* 🔄 CHIAVE 3: Corridoio Verticale (margin-top da applicare al sedile 4/D) */
 .has-aisle {
     margin-top: 15px; 
 }
 
-/* Stati e Classi */
 .available {
-    background-color: var(--success-color); /* Verde */
+    background-color: var(--success-color);
 }
 
 .reserved {
-    background-color: var(--error-color); /* Rosso */
+    background-color: var(--error-color);
 }
 
 .seat-btn:hover {
@@ -308,19 +302,18 @@ h2 {
 }
 
 .full-width-card {
-    /* Utilizziamo flex-basis per dividere lo spazio */
-    flex-basis: 65%; /* Tabella Voli (più grande) */
+    flex-basis: 65%;
     min-width: 450px;
 }
 
 .full-width-card:last-child {
-    flex-basis: calc(35% - 20px); /* Messaggio di stato/istruzioni */
+    flex-basis: calc(35% - 20px);
     min-width: 300px;
 }
 
 .scrollable-table-container {
     max-height: 400px;
-    overflow-y: auto; /* Scroll verticale per la tabella voli */
+    overflow-y: auto;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
@@ -360,7 +353,6 @@ tbody tr:hover {
 }
 
 .form-card {
-    /* Le due form affiancate */
     flex-basis: calc(50% - 10px);
     min-width: 300px;
 }
@@ -384,6 +376,7 @@ tbody tr:hover {
     font-size: 1em;
 }
 
+/* 🚩 CORREZIONE 2: Stile coerente per i bottoni */
 .btn-primary, .btn-secondary {
     padding: 12px;
     border: none;
@@ -396,6 +389,7 @@ tbody tr:hover {
 }
 
 .btn-primary {
+    /* Bottone principale (Add Flight) -> ROSSO */
     background-color: var(--primary-color);
 }
 
@@ -404,6 +398,7 @@ tbody tr:hover {
 }
 
 .btn-secondary {
+    /* Bottone secondario (Remove Flight) -> GRIGIO */
     background-color: var(--secondary-color);
 }
 
@@ -430,7 +425,6 @@ hr {
     }
 
     .full-width-card:last-child {
-        /* Messaggio di stato torna a larghezza completa */
         flex-basis: 100%; 
     }
 
