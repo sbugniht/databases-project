@@ -337,14 +337,15 @@ table tr:hover {
 }
 
 
-/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE RISOLTO) --- */
+/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE - FIX DEFINITIVO) --- */
 
 .plane-seats-card {
+    /* Mantiene il contenitore principale per l'overflow */
     overflow: hidden; 
 }
 
 .airplane-layout {
-    /* Abilita lo scrolling orizzontale se il contenuto supera la larghezza */
+    /* Abilita lo scrolling orizzontale */
     overflow-x: auto; 
     padding: 15px 10px;
     border: 2px solid #ddd;
@@ -352,33 +353,56 @@ table tr:hover {
     background-color: #fcfcfc;
     margin-top: 20px;
     
-    /* SOLUZIONE: Deleghiamo il layout interno a Flexbox */
-    display: flex; /* Trasforma l'airplane-layout in un contenitore flex */
-    flex-direction: column; /* Impila verticalmente gli indicatori e il contenitore delle righe */
+    /* Contiene gli indicatori e le righe: impila verticalmente */
+    display: flex; 
+    flex-direction: column;
 }
 
 /* Contenitore interno che gestisce la pila verticale delle righe */
 .seat-rows-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; 
     gap: 5px;
-    width: fit-content;
-    white-space: normal;
+    
+    /* Regola chiave: Forzare il contenitore ad essere largo quanto il suo contenuto massimo,
+       permettendo al genitore (.airplane-layout) di scorrere. */
+    width: max-content; 
+    min-width: 100%; /* Assicura che riempia almeno la larghezza disponibile */
 }
 
 .seat-row {
     display: flex;
     align-items: center;
     gap: 5px; 
-    /* Regola CRITICA: Forza la riga a non andare a capo, abilitando lo scroll */
+    
+    /* ESSENZIALE: impedisce ai posti di andare a capo */
     white-space: nowrap; 
     margin-bottom: 5px;
     
-    /* Impedisce alla riga di rimpicciolirsi, mantenendo la sua larghezza completa */
+    /* Garantisce che la riga intera scorra orizzontalmente */
     flex-shrink: 0; 
 }
 
-/* Indicatori */
+/* Indicatore del Corridoio */
+.aisle-marker {
+    /* La posizione è calcolata in base alla larghezza degli elementi A, B, C e del loro gap */
+    text-align: left;
+    margin-left: 55px; 
+    padding-left: 0;
+    font-size: 0.7em;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+/* Posti */
+.seat-btn {
+    flex-shrink: 0; /* Impedisce al bottone di rimpicciolirsi */
+    width: 30px;
+    height: 30px;
+    /* ... (altri stili) ... */
+}
+
 .fuselage-marker {
     text-align: center;
     font-size: 0.8em;
@@ -390,16 +414,6 @@ table tr:hover {
     border-top: 1px dashed #eee;
     border-bottom: none;
 }
-.aisle-marker {
-    text-align: left;
-    margin-left: 55px; /* Spazio per A, B */
-    padding-left: 0;
-    font-size: 0.7em;
-    font-weight: 600;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-}
-
 /* Posti */
 .row-label {
     font-weight: 700;
@@ -410,19 +424,7 @@ table tr:hover {
     font-size: 0.9em;
 }
 
-.seat-btn {
-    width: 30px;
-    height: 30px;
-    border: none;
-    border-radius: 4px;
-    cursor: default;
-    font-size: 0.75em;
-    font-weight: 700;
-    text-align: center;
-    line-height: 30px;
-    padding: 0;
-    flex-shrink: 0; 
-}
+
 
 .seat-btn.available {
     background-color: var(--success-color); 
