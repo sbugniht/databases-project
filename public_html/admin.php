@@ -201,35 +201,37 @@ $conn->close();
 
                 <div class="seat-map-placeholder">
                     <?php if (!empty($simulated_seats)): ?>
-                        <div class="airplane-layout">
-                            <div class="fuselage-marker">Fronte Aereo / Legenda: Reserved (Rosso) | Available (Verde)</div>
-                            <div class="aisle-marker">Corridoio</div>
-                            
-                            <div class="seat-rows-container">
-
-                            <?php foreach ($simulated_seats as $row_index => $row): ?>
-                                <div class="seat-row">
-                                    <div class="row-label"><?php echo $row_index + 1; ?></div>
-                                    <?php 
-                                    $seat_in_row_counter = 0;
-                                    foreach ($row as $seat): 
-                                        $seat_in_row_counter++;
-                                        // Aggiunge la classe per il corridoio dopo il terzo posto (3-3 layout)
-                                        $gap_class = ($seat_in_row_counter === 3) ? 'has-aisle' : '';
-                                    ?>
-                                        <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
-                                                title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class']; ?>">
-                                            <?php echo htmlspecialchars($seat['number']); ?>
-                                        </button>
-                                    <?php endforeach; ?>
-                                </div>
+                    <div class="airplane-layout">
+                    <div class="fuselage-marker">Fronte Aereo / Legenda: Reserved (Rosso) | Available (Verde)</div>
+                    <div class="aisle-marker">Corridoio</div>
+                    
+                    <div class="seat-rows-container">
+                    
+                    <?php foreach ($simulated_seats as $row_index => $row): ?>
+                        <div class="seat-row">
+                            <div class="row-label"><?php echo $row_index + 1; ?></div>
+                            <?php 
+                            $seat_in_row_counter = 0;
+                            foreach ($row as $seat): 
+                                $seat_in_row_counter++;
+                                // Aggiunge la classe per il corridoio dopo il terzo posto (3-3 layout)
+                                $gap_class = ($seat_in_row_counter === 3) ? 'has-aisle' : '';
+                            ?>
+                                <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
+                                        title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class']; ?>">
+                                    <?php echo htmlspecialchars($seat['number']); ?>
+                                </button>
                             <?php endforeach; ?>
-                            </div> <div class="fuselage-marker">Coda Aereo</div>
                         </div>
-                    <?php else: ?>
-                        <p><?php echo $error_message ?: 'Seleziona un Volo per visualizzare i posti.'; ?></p>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
+                            
+                    </div> <div class="fuselage-marker">Coda Aereo</div>
+                            
                 </div>
+                <?php else: ?>
+                    <p><?php echo $error_message ?: 'Seleziona un Volo per visualizzare i posti.'; ?></p>
+                <?php endif; ?>
+            </div>
             </div>
         </div>
         
