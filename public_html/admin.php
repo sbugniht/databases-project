@@ -215,13 +215,14 @@ $conn->close();
                                     $seat_in_row_counter = 0;
                                     foreach ($row as $seat): 
                                         $seat_in_row_counter++;
-                                        $gap_class = ($seat_in_row_counter === 3) ? 'has-aisle' : '';
-                                    ?>
-                                        <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
+                                        
+                                        $gap_class = ($seat_in_row_counter === 4) ? 'has-aisle' : ''; 
+                                        ?>
+                                            <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
                                                 title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class']; ?>">
-                                            <?php echo htmlspecialchars($seat['number']); ?>
-                                        </button>
-                                    <?php endforeach; ?>
+                                                <?php echo htmlspecialchars($seat['number']); ?>
+                                            </button>
+                                        <?php endforeach; ?>
                                 </div>
                             <?php endforeach; ?>
                                     
