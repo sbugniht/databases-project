@@ -166,10 +166,7 @@ FROM Flights F
 JOIN Airport Adep ON F.Dairport_id = Adep.airport_id
 JOIN Airport Aarr ON F.Aairport_id = Aarr.airport_id;
 
--- =========================================================
--- TRIGGER CORRETTO: AFTER INSERT ON FLIGHTS
--- Popola Tickets e SeatAssignment per il nuovo volo creato.
--- =========================================================
+
 
 DELIMITER //
 
@@ -184,26 +181,26 @@ BEGIN
     DECLARE business_limit INT;
     DECLARE seat_counter INT DEFAULT 1;
 
-    -- Verifica se l'aereo è Commerciale e ottiene il numero di posti
+    
     SELECT seats INTO total_seats 
     FROM Commercial 
     WHERE plane_id = NEW.plane_id;
 
-    -- Se l'aereo è Commerciale (total_seats non è NULL)
+   
     IF total_seats IS NOT NULL THEN
         
-        -- Calcola i limiti dei posti (5% First, 15% Business, 80% Economy)
+      
         SET first_class_limit = GREATEST(1, ROUND(total_seats * 0.05)); 
-        SET business_limit = ROUND(total_seats * 0.20); -- Fino al 20% totale
+        SET business_limit = ROUND(total_seats * 0.20); 
         
-        -- Ciclo per inserire i posti per il NUOVO flight_id
+        
         WHILE seat_counter <= total_seats DO
             
-            -- Inserisci il posto nella tabella Tickets (Inventario)
+        
             INSERT INTO Tickets (seat_id, flight_id) 
             VALUES (seat_counter, NEW.flight_id);
             
-            -- Assegna la classe nella tabella SeatAssignment
+           
             IF seat_counter <= first_class_limit THEN
                 -- First Class
                 INSERT INTO SeatAssignment (seat_id, flight_id, class) 
@@ -230,36 +227,31 @@ END //
 
 DELIMITER ;
 
--- =========================================================
--- SCRIPT DI POPOLAMENTO MANUALE PER VOLI ESISTENTI
--- Da eseguire una sola volta dopo la creazione del trigger
--- =========================================================
-
 DELIMITER //
 
--- Creazione di una Stored Procedure temporanea per gestire il ciclo
+
 CREATE PROCEDURE PopulateExistingFlights()
 BEGIN
-    -- Dichiarazioni delle variabili per il cursore
+   
     DECLARE done INT DEFAULT FALSE;
     DECLARE current_flight_id INT;
     DECLARE current_plane_id INT;
     DECLARE total_seats INT;
     
-    -- Variabili per la logica di assegnazione classi
+    
     DECLARE first_class_limit INT;
     DECLARE business_limit INT;
     DECLARE seat_counter INT;
 
-    -- Dichiarazione del cursore: Seleziona tutti i voli attuali che usano un aereo Commerciale
+
     DECLARE flight_cursor CURSOR FOR 
         SELECT F.flight_id, F.plane_id, C.seats
         FROM Flights F
         JOIN Commercial C ON F.plane_id = C.plane_id
-        -- Escludi i voli che hanno già posti in Tickets per evitare duplicati
+        
         WHERE F.flight_id NOT IN (SELECT DISTINCT flight_id FROM Tickets);
 
-    -- Gestore per la fine del cursore
+    
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     OPEN flight_cursor;
@@ -271,24 +263,22 @@ BEGIN
             LEAVE read_loop;
         END IF;
 
-        -- ----------------------------------------------------
-        -- Logica di Assegnazione Classi (uguale al trigger)
-        -- ----------------------------------------------------
+       
         
         SET seat_counter = 1;
 
-        -- Calcola i limiti dei posti (5% First, 15% Business, 80% Economy)
+        
         SET first_class_limit = GREATEST(1, ROUND(total_seats * 0.05)); 
         SET business_limit = ROUND(total_seats * 0.20); 
 
-        -- Ciclo per inserire tutti i posti per il Volo Corrente
+        
         WHILE seat_counter <= total_seats DO
             
-            -- Inserisci il posto nella tabella Tickets (Inventario)
+            
             INSERT INTO Tickets (seat_id, flight_id) 
             VALUES (seat_counter, current_flight_id);
             
-            -- Assegna la classe nella tabella SeatAssignment
+            
             IF seat_counter <= first_class_limit THEN
                 INSERT INTO SeatAssignment (seat_id, flight_id, class) 
                 VALUES (seat_counter, current_flight_id, 'FirstClass');
@@ -313,8 +303,8 @@ END //
 
 DELIMITER ;
 
--- Esegui la Stored Procedure per popolare i dati
+
 CALL PopulateExistingFlights();
 
--- Pulisci la Stored Procedure temporanea
+
 DROP PROCEDURE PopulateExistingFlights;

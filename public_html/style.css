@@ -1,10 +1,8 @@
-/* =============================================== */
-/* === BASE RESET & TYPOGRAPHY & VARIABLES === */
-/* =============================================== */
+
 :root {
-    --primary-color: #ff3300; /* Rosso/Arancio Solido */
+    --primary-color: #ff3300; 
     --primary-hover: #b31e00;
-    --secondary-color: #6c757d; /* Gray */
+    --secondary-color: #6c757d; 
     --background-light: #f4f7f9;
     --background-dark: #ffffff;
     --text-dark: #333333;
@@ -13,7 +11,7 @@
     --success-color: #28a745;
     --error-color: #dc3545;
     --border-radius: 8px;
-    --feature-bg: #fff8e1; /* Sfondo giallognolo per Features */
+    --feature-bg: #fff8e1; 
 }
 
 * {
@@ -81,7 +79,7 @@ nav ul li a.active {
     border-bottom: 2px solid var(--primary-color);
 }
 
-/* Logout Button (Outside NAV) */
+/* Logout Button */
 .header-action-btn {
     text-decoration: none;
     background-color: var(--error-color); 
@@ -104,7 +102,7 @@ header nav {
 }
 
 
-/* --- HERO SECTION (index.php) --- */
+
 .hero {
     background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('images/hero-bg.jpg') no-repeat center center/cover;
     color: var(--text-light);
@@ -123,7 +121,7 @@ header nav {
     margin-bottom: 30px;
 }
 
-/* --- FEATURES SECTION (index.php) --- */
+
 .features {
     display: flex;
     justify-content: space-around;
@@ -134,18 +132,18 @@ header nav {
 }
 
 .feature-card {
-    background-color: var(--feature-bg); /* Sfondo giallognolo */
+    background-color: var(--feature-bg); 
     padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
     flex: 1;
     min-width: 250px;
     text-align: center;
-    border: 1px solid #ffcc80; /* Bordo sottile */
+    border: 1px solid #ffcc80; 
 }
 
 .feature-card h3 {
-    color: var(--primary-color); /* Rosso */
+    color: var(--primary-color); 
     margin-bottom: 10px;
 }
 
@@ -229,7 +227,7 @@ button[type="submit"]:hover {
     text-align: center;
 }
 
-/* Search Card (Homepage) */
+
 .search-card {
     background-color: var(--background-dark);
     padding: 30px;
@@ -246,7 +244,7 @@ button[type="submit"]:hover {
     flex-wrap: wrap; 
     align-items: flex-end;
 }
-.user-search { /* Specific for user page */
+.user-search { 
     box-shadow: none; 
     margin: 0 auto 30px auto;
     max-width: 800px;
@@ -298,7 +296,7 @@ table tr:hover {
     text-align: justify;
     margin-top: auto; 
 }
-.image-gallery { /* Imprint page images */
+.image-gallery { 
     display: flex; 
     gap: 10px;    
     margin: 20px auto;
@@ -325,10 +323,6 @@ footer a {
     text-decoration: none;
 }
 
-
-/* =============================================== */
-/* === RESPONSIVENESS (APPLIES TO ALL PAGES) === */
-/* =============================================== */
 @media (max-width: 900px) {
     .search-card form {
         flex-direction: column;
@@ -338,7 +332,7 @@ footer a {
         width: 100%;
         min-width: unset;
     }
-    /* Regole Admin Grid saranno definite in admin_style.css media queries */
+    
     .image-gallery {
         flex-direction: column;
         align-items: center;
@@ -367,14 +361,13 @@ footer a {
         margin-bottom: 15px;
     }
 }
-/* =============================================== */
-/* === SEAT MAP STYLES (User Page) === */
-/* =============================================== */
+/* user page - seat selection section*/
+
 :root {
-    /* Aggiungi le classi di posto al tuo root se non ci sono */
-    --economy-class-color: #007bff; /* Blu per Economy */
-    --business-class-color: #fd7e14; /* Arancio per Business */
-    --first-class-color: #6f42c1; /* Viola per First */
+    
+    --economy-class-color: #007bff; 
+    --business-class-color: #fd7e14;
+    --first-class-color: #6f42c1;
 }
 
 .flight-map-container {
@@ -394,7 +387,7 @@ footer a {
 }
 
 .airplane-layout {
-    overflow-x: auto; /* Scroll orizzontale per l'aereo */
+    overflow-x: auto; 
     padding: 10px 0;
     background-color: var(--feature-bg);
     border-radius: var(--border-radius);
@@ -419,7 +412,7 @@ footer a {
     font-style: italic;
 }
 
-/* CHIAVE 1: Dispone le righe una di fianco all'altra (Orizzontale) */
+
 .seat-rows-container {
     display: flex;
     flex-direction: row; 
@@ -428,7 +421,6 @@ footer a {
     align-items: flex-start;
 }
 
-/* CHIAVE 2: Ogni riga ora è una colonna di sedili (Verticale) */
 .seat-row {
     display: flex; 
     flex-direction: column; 
@@ -460,21 +452,20 @@ footer a {
     font-size: 0.7em;
     transition: transform 0.1s, box-shadow 0.2s;
     flex-shrink: 0;
-    cursor: pointer; /* Aggiunto cursor pointer */
+    cursor: pointer; 
 }
 
-/* Corridoio Verticale (margin-top da applicare al sedile 4/D) */
 .has-aisle {
     margin-top: 15px; 
 }
 
-/* Stati e Classi */
+
 .available {
-    background-color: var(--success-color); /* Verde */
+    background-color: var(--success-color); 
 }
 
 .reserved {
-    background-color: var(--error-color); /* Rosso */
+    background-color: var(--error-color); 
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -494,7 +485,6 @@ footer a {
     border: 2px solid var(--first-class-color);
 }
 
-/* --- BOOKING SUMMARY CARD --- */
 .summary-card {
     background-color: var(--background-dark);
     padding: 20px;

@@ -1,10 +1,7 @@
-/*
- * STILI GENERALI E VARIABILI (NESSUNA MODIFICA)
- */
 :root {
-    --primary-color: #ff3300; /* Rosso/Arancio Solido */
+    --primary-color: #ff3300; 
     --primary-hover: #b31e00;
-    --secondary-color: #6c757d; /* Gray */
+    --secondary-color: #6c757d; 
     --background-light: #f4f7f9;
     --background-dark: #ffffff;
     --text-dark: #333333;
@@ -13,10 +10,10 @@
     --success-color: #28a745;
     --error-color: #dc3545;
     --border-radius: 8px;
-    --feature-bg: #fff8e1; /* Sfondo giallognolo per Features */
-    --economy-class-color: #007bff; /* Blu per Economy */
-    --business-class-color: #fd7e14; /* Arancio per Business */
-    --first-class-color: #6f42c1; /* Viola per First */
+    --feature-bg: #fff8e1;
+    --economy-class-color: #007bff;
+    --business-class-color: #fd7e14; 
+    --first-class-color: #6f42c1; 
 }
 
 * {
@@ -32,9 +29,7 @@ body {
     line-height: 1.6;
 }
 
-/*
- * HEADER E LAYOUT PRINCIPALE
- */
+
 header {
     background-color: var(--background-dark);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -99,7 +94,7 @@ h2 {
     
 }
 
-/* Messaggi di Stato */
+
 .success, .error {
     padding: 15px;
     border-radius: var(--border-radius);
@@ -120,9 +115,7 @@ h2 {
     border: 1px solid var(--error-color);
 }
 
-/*
- * 1. SEZIONE INVENTARIO (Plane List & Seat Visualizer)
- */
+
 .admin-management-content {
     margin-top: 20px;
 }
@@ -134,7 +127,7 @@ h2 {
     flex-wrap: wrap; 
 }
 
-/* Stili delle Card */
+
 .plane-list-card, .plane-seats-card, .form-card {
     background-color: var(--background-dark);
     padding: 20px;
@@ -197,7 +190,7 @@ h2 {
     flex-grow: 1;
 }
 
-/* LAYOUT POSTI (Horizontal Aircraft Layout - Nessuna modifica) */
+
 .airplane-layout {
     overflow-x: auto;
     padding: 10px 0;
@@ -293,9 +286,7 @@ h2 {
 }
 
 
-/*
- * 2. SEZIONE VOLI ESISTENTI (Tabella + Messaggio di Stato Affiancato)
- */
+
 
 .flight-list-scroll-wrapper {
     display: flex;
@@ -346,9 +337,7 @@ tbody tr:hover {
     background-color: #f7f7f7;
 }
 
-/*
- * 3. SEZIONE GESTIONE VOLI (Form Affiancati)
- */
+
 .flight-management-grid {
     display: flex;
     gap: 20px;
@@ -419,7 +408,7 @@ hr {
     margin: 30px 0;
 }
 
-/* Media Query per layout responsivo */
+
 @media (max-width: 900px) {
     .plane-inventory-container, .flight-list-scroll-wrapper, .flight-management-grid {
         flex-direction: column;

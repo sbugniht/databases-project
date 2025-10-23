@@ -1,11 +1,5 @@
--- ===============================================
--- POPULATION SCRIPT V2.0 - SKYBOOK AIRLINE DATABASE
--- Risolve la visibilità dei voli CDG-FRA (105) e FCO-MAD (106)
--- Aggiunge la popolazione della tabella cruciale 'classPrice'
--- ===============================================
 
--- === 0. CREAZIONE DELLA VISTA CRUCIALE ===
--- Questa vista è utilizzata in user.php per ottenere le città e gli IATA di partenza/arrivo
+
 CREATE OR REPLACE VIEW View_SearchFlights AS
 SELECT 
     F.flight_id,
@@ -69,7 +63,7 @@ VALUES
 INSERT IGNORE INTO Admin (user_id, last_login) VALUES (1, NOW()), (2, NOW());
 INSERT IGNORE INTO Customer (user_id) VALUES (3), (4), (5);
 
--- Aereo 5 reso Commerciale per Volo 105 (CDG-FRA)
+
 INSERT IGNORE INTO Commercial(plane_id, seats) VALUES
 (1, 150), (2, 200), (3, 180), (5, 170), 
 (6, 220), (7, 160), (8, 210), (9, 190), (10, 230);
@@ -84,8 +78,8 @@ VALUES
 (102, 3, 4, 2, 'delayed'),      -- YYZ -> YVR
 (103, 5, 6, 3, 'on time'),      -- MEX -> GRU
 (104, 7, 8, 4, 'cancelled'),    -- EZE -> LHR (Cargo)
-(105, 9, 10, 5, 'on time'),     -- CDG -> FRA (Rispetto alla tua richiesta)
-(106, 11, 12, 6, 'delayed'),    -- FCO -> MAD (Rispetto alla tua richiesta)
+(105, 9, 10, 5, 'on time'),     -- CDG -> FRA 
+(106, 11, 12, 6, 'delayed'),    -- FCO -> MAD 
 (107, 2, 1, 7, 'on time'),      -- LAX -> JFK
 (108, 4, 3, 8, 'on time'),      -- YVR -> YYZ
 (109, 6, 5, 9, 'delayed'),      -- GRU -> MEX
@@ -96,8 +90,7 @@ INSERT IGNORE INTO Dom_flight(flight_id) VALUES (101), (102), (107), (108);
 INSERT IGNORE INTO Int_flight(flight_id) VALUES (103), (104), (105), (106), (109), (110);
 
 
--- === 4. PREZZI CLASSE (CRUCIALE PER LA RICERCA) ===
--- Senza questi dati, la JOIN in user.php fallisce e i voli non sono trovati.
+
 INSERT IGNORE INTO classPrice(class, price)
 VALUES
 ('Economy', 50),
@@ -109,10 +102,10 @@ VALUES
 
 
 
--- === 6. BOOKINGS (Prenotazioni per testare la disponibilità) ===
+
 
 INSERT IGNORE INTO Bookings(user_id, flight_id, seat_id)
 VALUES
-(3, 101, 1),    -- Posto 1 su volo 101 occupato
-(4, 101, 2);    -- Posto 2 su volo 101 occupato
+(3, 101, 1),    
+(4, 101, 2);   
 

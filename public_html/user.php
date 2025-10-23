@@ -1,14 +1,14 @@
 <?php
 session_start();
 
-// Inclusione delle credenziali e setup della connessione
+
 $servername = "127.0.0.1";
 $username_db = "gbrugnara";
 $password_db = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
 $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
 
-// Controllo di sicurezza e connessione
+
 if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 0) {
   header("Location: login.php");
   exit();
@@ -25,15 +25,13 @@ $arrival = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'search') {
     
-    // 1. Dati di Ricerca
+    
     $departure = trim($_POST['departure'] ?? '');
     $arrival = trim($_POST['arrival'] ?? '');
     
     if (!empty($departure) && !empty($arrival)) {
 
-        // 2. Query per voli DISPONIBILI
-        // Unisce View_SearchFlights con Tickets e SeatAssignment per trovare posti non ancora prenotati.
-        // I posti prenotati (Bookings) non saranno restituiti.
+        
         $sql = "
             SELECT 
                 VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, 
@@ -54,13 +52,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         $stmt = $conn->prepare($sql);
         
         $search_results = [];
-        $flights_for_display = []; // Nuovo array per la visualizzazione grafica
-        $seats_per_row = 6; // Definisci la tua riga standard (come nell'admin)
+        $flights_for_display = []; 
+        $seats_per_row = 6; 
 
         if ($stmt === false) {
             $message = "<p class='error'>SQL Prepare failed: " . $conn->error . "</p>"; 
         } else {
-            // Binding dei parametri
+            
             $stmt->bind_param("ssss", $departure, $departure, $arrival, $arrival);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -68,14 +66,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     $flight_id = $row['flight_id'];
-                    $seat_index = (int)$row['seat_id'] - 1; // Indice a base zero
+                    $seat_index = (int)$row['seat_id'] - 1; 
 
-                    // Inizializza il volo se non esiste
+                    
                     if (!isset($flights_for_display[$flight_id])) {
                         $flights_for_display[$flight_id] = [
                             'info' => [
                                 'flight_id' => $row['flight_id'],
-                                'route' => $row['dep_city'] . ' &rarr; ' . $row['arr_city'],
+                                'route' => $row['dep_city'] . '---> ' . $row['arr_city'],
                                 'dep_iata' => $row['dep_iata'],
                                 'arr_iata' => $row['arr_iata'],
                             ],
@@ -83,15 +81,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                         ];
                     }
 
-                    // Calcola la riga e la posizione all'interno della riga
+                    
                     $row_index = floor($seat_index / $seats_per_row);
                     
-                    // Inizializza la riga se non esiste
+                    
                     if (!isset($flights_for_display[$flight_id]['seats'][$row_index])) {
                         $flights_for_display[$flight_id]['seats'][$row_index] = [];
                     }
 
-                    // Aggiunge il posto
+                    
                     $flights_for_display[$flight_id]['seats'][$row_index][] = [
                         'number' => $row['seat_id'],
                         'status' => $row['is_reserved'] ? 'reserved' : 'available',
@@ -153,7 +151,7 @@ $conn->close();
         <button type="submit" class="btn-primary">Search Available Seats</button>
       </form>
       <?php 
-        // Messaggio di stato dopo la ricerca o la prenotazione
+       
         if (isset($_GET['status'])) {
             $msg_class = $_GET['status'] === 'success' ? 'success' : 'error';
             $msg_text = htmlspecialchars($_GET['msg']);
@@ -188,8 +186,8 @@ $conn->close();
           <h3>Volo ID <?php echo htmlspecialchars($info['flight_id']) . ': ' . $info['dep_iata'] . ' &rarr; ' . $info['arr_iata']; ?></h3>
           
           <div class="airplane-layout">
-              <div class="fuselage-marker">Fronte Aereo / Legenda: Reserved (Rosso) | Available (Verde)</div>
-              <div class="aisle-marker">Corridoio</div>
+              <div class="fuselage-marker">Legend: Reserved (Red) | Available (Green)</div>
+              <div class="aisle-marker">Corridor</div>
 
               <div class="seat-rows-container">
                   <?php foreach ($simulated_seats as $row_index => $row): ?>
@@ -199,10 +197,10 @@ $conn->close();
                           $seat_in_row_counter = 0;
                           foreach ($row as $seat): 
                               $seat_in_row_counter++;
-                              // Corridoio dopo il 3° posto (per layout orizzontale)
+                              // 
                               $gap_class = ($seat_in_row_counter === 4) ? 'has-aisle' : '';
                               
-                              // Aggiunta la classe 'bookable' per JS
+                              // 
                               $is_bookable = $seat['status'] === 'available' ? ' bookable' : '';
                           ?>
                               <button 
@@ -220,7 +218,7 @@ $conn->close();
                       </div>
                   <?php endforeach; ?>
               </div> 
-              <div class="fuselage-marker">Coda Aereo</div>                    
+              <div class="fuselage-marker"> <- front of the airplane</div>                    
           </div>
       </div>
       <?php endforeach; ?>
@@ -235,15 +233,15 @@ $conn->close();
 
         bookableSeats.forEach(button => {
             button.addEventListener('click', (event) => {
-                // 1. Rimuovi evidenziazione da tutti
+                // 
                 document.querySelectorAll('.seat-btn.selected').forEach(btn => {
                     btn.classList.remove('selected');
                 });
                 
-                // 2. Evidenzia il posto cliccato
+                // 
                 event.currentTarget.classList.add('selected');
 
-                // 3. Popola il riepilogo
+                // 
                 const flightId = event.currentTarget.dataset.flightId;
                 const seatNum = event.currentTarget.dataset.seatNum;
                 const seatClass = event.currentTarget.dataset.seatClass;
@@ -258,7 +256,7 @@ $conn->close();
                 document.getElementById('form-flight-id').value = flightId;
                 document.getElementById('form-seat-id').value = seatNum;
 
-                // 4. Mostra il riepilogo
+                //
                 summaryCard.style.display = 'block';
                 summaryCard.scrollIntoView({ behavior: 'smooth' });
             });
