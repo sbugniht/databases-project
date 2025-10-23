@@ -352,8 +352,9 @@ table tr:hover {
     background-color: #fcfcfc;
     margin-top: 20px;
     
-    /* Il contenitore esterno non forza lo spazio, ma abilita lo scroll */
-    white-space: normal; 
+    /* SOLUZIONE: Deleghiamo il layout interno a Flexbox */
+    display: flex; /* Trasforma l'airplane-layout in un contenitore flex */
+    flex-direction: column; /* Impila verticalmente gli indicatori e il contenitore delle righe */
 }
 
 /* Contenitore interno che gestisce la pila verticale delle righe */
@@ -361,6 +362,8 @@ table tr:hover {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    width: fit-content;
+    white-space: normal;
 }
 
 .seat-row {

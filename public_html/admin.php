@@ -214,7 +214,7 @@ $conn->close();
                             $seat_in_row_counter = 0;
                             foreach ($row as $seat): 
                                 $seat_in_row_counter++;
-                                // Aggiunge la classe per il corridoio dopo il terzo posto (3-3 layout)
+                            
                                 $gap_class = ($seat_in_row_counter === 3) ? 'has-aisle' : '';
                             ?>
                                 <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
