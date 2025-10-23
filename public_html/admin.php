@@ -1,7 +1,6 @@
 <?php
 session_start();
 // === CONFIGURAZIONE E CONNESSIONE DATABASE ===
-// ASSUMENDO CHE QUESTO BLOCCO SIA STATO INSERITO COME DA INDICAZIONI PRECEDENTI
 $servername = "127.0.0.1";
 $username_db = "gbrugnara"; 
 $password_db = "KeRjnLwqj+rTTG3E";
@@ -13,13 +12,22 @@ if ($conn->connect_error) {
 }
 // ===========================================
 
-// Controllo di sicurezza: DEVE essere un admin (privilege 1)
 if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
   header("Location: login.php");
   exit();
 }
 
-// 1. FETCH DATI AEREI (esistente)
+// 1. FETCH DATI AEROPORTI per le tendine (NUOVO)
+$airports = [];
+$sql_airports = "SELECT airport_id, iata, city FROM Airport ORDER BY iata ASC";
+$result_airports = $conn->query($sql_airports);
+if ($result_airports) {
+    while ($row = $result_airports->fetch_assoc()) {
+        $airports[] = $row;
+    }
+}
+
+// 2. FETCH DATI AEREI (esistente)
 $planes = [];
 $sql_planes = "
     SELECT 
@@ -42,10 +50,9 @@ if ($result_planes) {
     }
 }
 
-
-// 2. FETCH DATI VOLI (NUOVO e CORRETTO)
+// 3. FETCH DATI VOLI (esistente)
 $flights = [];
-$existing_flights = []; // Variabile per popolare le tendine
+$existing_flights = []; 
 $sql_flights = "
     SELECT 
         flight_id, 
@@ -62,7 +69,6 @@ $result_flights = $conn->query($sql_flights);
 if ($result_flights) {
     while ($row = $result_flights->fetch_assoc()) {
         $flights[] = $row;
-        // Prepara la lista per le tendine (ID Volo: JFK -> LAX)
         $existing_flights[] = [
             'id' => $row['flight_id'],
             'label' => $row['flight_id'] . ': ' . $row['dep_iata'] . ' (' . $row['dep_city'] . ') -> ' . $row['arr_iata'] . ' (' . $row['arr_city'] . ')'
@@ -70,116 +76,80 @@ if ($result_flights) {
     }
 }
 
-// 3. LOGICA DI VISUALIZZAZIONE POSTI (NUOVA)
+// 4. LOGICA DI VISUALIZZAZIONE POSTI (MODIFICATA PER USARE DATI REALI)
 $simulated_seats = [];
 $error_message = '';
 
-if (isset($_GET['view_plane_id']) && is_numeric($_GET['view_plane_id'])) {
-    $target_plane_id = (int)$_GET['view_plane_id'];
+if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) { // CAMBIATO: ora si basa su flight_id
+    $target_flight_id = (int)$_GET['view_flight_id'];
     
-    // Trova i posti totali per l'aereo commerciale selezionato
-    $seats_count = null;
-    foreach ($planes as $p) {
-        if ($p['plane_id'] == $target_plane_id && isset($p['seats'])) {
-            $seats_count = (int)$p['seats'];
-            break;
-        }
-    }
-    
-    if ($seats_count > 0) {
-        $total_seats = $seats_count;
-        $seats_per_row = 5; // Simula 5 posti (A, B, C | D, E)
-        $num_rows = ceil($total_seats / $seats_per_row);
-        $seat_labels = ['A', 'B', 'C', 'D', 'E']; 
-        
+    // Query per ottenere tutti i posti per quel volo e il loro stato di prenotazione
+    $sql_seat_data = "
+        SELECT 
+            T.seat_id,
+            SA.class,
+            B.booking_id IS NOT NULL AS is_reserved
+        FROM Tickets T
+        JOIN SeatAssignment SA ON T.flight_id = SA.flight_id AND T.seat_id = SA.seat_id
+        LEFT JOIN Bookings B ON T.flight_id = B.flight_id AND T.seat_id = B.seat_id
+        WHERE T.flight_id = ?
+        ORDER BY T.seat_id ASC
+    ";
+
+    $stmt_seat_data = $conn->prepare($sql_seat_data);
+    $stmt_seat_data->bind_param("i", $target_flight_id);
+    $stmt_seat_data->execute();
+    $result_seat_data = $stmt_seat_data->get_result();
+
+    if ($result_seat_data->num_rows > 0) {
+        $seats_per_row = 6; // Tipica configurazione 3-3 (A,B,C | D,E,F)
         $seat_counter = 1;
-        for ($r = 1; $r <= $num_rows; $r++) {
-            $row_seats = [];
-            for ($s = 0; $s < $seats_per_row; $s++) {
-                if ($seat_counter <= $total_seats) {
-                    $seat_number = $r . $seat_labels[$s];
-                    // Simula lo stato: 1/3 posti riservati, 2/3 disponibili
-                    $status = ($seat_counter % 3 === 0) ? 'reserved' : 'available'; 
-                    $row_seats[] = ['number' => $seat_number, 'status' => $status];
-                    $seat_counter++;
-                }
+        $row_index = 0;
+        
+        // Inizializza la struttura
+        while ($row = $result_seat_data->fetch_assoc()) {
+            if ($seat_counter % $seats_per_row === 1) {
+                // Inizia una nuova riga nell'array
+                $simulated_seats[$row_index] = [];
             }
-            $simulated_seats[] = $row_seats;
+            
+            $simulated_seats[$row_index][] = [
+                'number' => $row['seat_id'],
+                'status' => $row['is_reserved'] ? 'reserved' : 'available',
+                'class' => $row['class']
+            ];
+
+            if ($seat_counter % $seats_per_row === 0) {
+                $row_index++;
+            }
+            $seat_counter++;
         }
-    } elseif ($seats_count === 0) {
-        $error_message = "L'aereo selezionato non ha una configurazione di posti (Cargo o Commerciale con 0 posti).";
     } else {
-        $error_message = "Dati posti non disponibili per l'ID aereo selezionato.";
+        $error_message = "Nessun posto trovato per il Volo ID $target_flight_id. Potrebbe essere un volo Cargo o i posti devono ancora essere generati.";
     }
 }
 
-// Chiude la connessione SOLO dopo aver completato tutti i fetch
 $conn->close();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard - SkyBook</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
 
-<header>
-    <div class="logo-wrapper">
-        <img src="images/logo.JPG" alt="SkyBook Logo" class="logo-image">
-        <div class="logo">SkyBook</div>
-    </div>
-    <nav></nav>
-    <a href="logout.php" class="header-action-btn">Logout</a>
-</header>
-
-<div class="results admin-management">
-    <h1>Welcome Admin, ID: <?php echo htmlspecialchars($_SESSION['user_id']); ?>!</h1>
-    <p>Use this dashboard to manage flights and view existing inventory.</p>
-
-    <?php if (isset($_GET['success'])): ?>
-        <div class="success">✅ Operazione completata con successo!</div>
-    <?php endif; ?>
-    <?php if (isset($_GET['error'])): ?>
-        <div class="error">❌ Errore durante l'operazione: <?php echo htmlspecialchars($_GET['error']); ?></div>
-    <?php endif; ?>
+<div class="results admin-management"> 
     <section class="admin-management-content">
         
         <h2>Existing Planes & Inventory</h2>
         <div class="plane-inventory-container">
-            
-            <div class="plane-list-card">
-                <h3>Current Plane IDs</h3>
-                <?php if (!empty($planes)): ?>
-                    <ul>
-                        <?php foreach ($planes as $plane): ?>
-                            <li>
-                                <strong>ID <?php echo htmlspecialchars($plane['plane_id']); ?>:</strong> 
-                                <?php echo htmlspecialchars($plane['type_status']); ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else: ?>
-                    <p>No planes found.</p>
-                <?php endif; ?>
-            </div>
-            
             <div class="plane-seats-card">
-                <h3>Seat Visualizer (Detailed View)</h3>
-                <p>Seleziona l'ID di un aereo per visualizzare una mappa *simulata* dei posti:</p>
+                <h3>Seat Visualizer (Volo: <?php echo isset($target_flight_id) ? $target_flight_id : 'Seleziona'; ?>)</h3>
+                <p>Seleziona l'ID di un **volo** per visualizzare lo stato dei posti:</p>
                 
                 <form method="get" action="admin.php" class="seat-selection-form">
-                    <label for="select_plane">Aereo ID:</label>
-                    <select id="select_plane" name="view_plane_id" onchange="this.form.submit()" class="full-width-select">
-                        <option value="">Seleziona Aereo Commerciale</option>
-                        <?php foreach ($planes as $p): ?>
-                            <?php if (isset($p['seats'])): // Mostra solo aerei commerciali ?>
-                                <option value="<?php echo htmlspecialchars($p['plane_id']); ?>" 
-                                        <?php echo (isset($_GET['view_plane_id']) && $_GET['view_plane_id'] == $p['plane_id']) ? 'selected' : ''; ?>>
-                                    ID <?php echo htmlspecialchars($p['plane_id']); ?> (<?php echo $p['seats']; ?> posti)
-                                </option>
-                            <?php endif; ?>
+                    <label for="select_flight">Volo ID:</label>
+                    <select id="select_flight" name="view_flight_id" onchange="this.form.submit()" class="full-width-select">
+                        <option value="">Seleziona Volo</option>
+                        <?php foreach ($flights as $f): ?>
+                            <option value="<?php echo htmlspecialchars($f['flight_id']); ?>" 
+                                    <?php echo (isset($_GET['view_flight_id']) && $_GET['view_flight_id'] == $f['flight_id']) ? 'selected' : ''; ?>>
+                                ID <?php echo htmlspecialchars($f['flight_id']); ?> (<?php echo $f['dep_iata']; ?> &rarr; <?php echo $f['arr_iata']; ?>)
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </form>
@@ -187,7 +157,7 @@ $conn->close();
                 <div class="seat-map-placeholder">
                     <?php if (!empty($simulated_seats)): ?>
                         <div class="airplane-layout">
-                            <div class="fuselage-marker">Fronte Aereo / Cabina</div>
+                            <div class="fuselage-marker">Fronte Aereo / Legenda: Reserved (Rosso) | Available (Verde)</div>
                             <div class="aisle-marker">Corridoio</div>
                             
                             <?php foreach ($simulated_seats as $row_index => $row): ?>
@@ -196,11 +166,11 @@ $conn->close();
                                     <?php foreach ($row as $seat): ?>
                                         <?php 
                                             // Aggiunge la classe per il corridoio dopo il terzo posto (C)
-                                            $gap_class = (substr($seat['number'], -1) == 'C') ? 'has-aisle' : '';
+                                            $gap_class = (count($row) >= 6 && $seat_counter % 6 === 3) ? 'has-aisle' : '';
                                         ?>
-                                        <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?>" 
-                                                title="Posto <?php echo $seat['number']; ?>">
-                                            <?php echo substr($seat['number'], -1); ?>
+                                        <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
+                                                title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class']; ?>">
+                                            <?php echo htmlspecialchars($seat['number']); ?>
                                         </button>
                                     <?php endforeach; ?>
                                 </div>
@@ -208,7 +178,7 @@ $conn->close();
                             <div class="fuselage-marker">Coda Aereo</div>
                         </div>
                     <?php else: ?>
-                        <p><?php echo $error_message ?: 'Seleziona un Aereo Commerciale per visualizzare i posti.'; ?></p>
+                        <p><?php echo $error_message ?: 'Seleziona un Volo per visualizzare i posti.'; ?></p>
                     <?php endif; ?>
                 </div>
                 
@@ -218,41 +188,45 @@ $conn->close();
         <hr>
         
         <h2>Existing Flight IDs</h2>
-<div class="plane-inventory-container">
-    <div class="plane-list-card">
-        <h3>Voli Attuali</h3>
-        <?php if (!empty($flights)): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID Volo</th>
-                        <th>Partenza</th>
-                        <th>Arrivo</th>
-                        <th>Aereo ID</th>
-                        <th>Stato</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($flights as $flight): ?>
-                        <tr>
-                            <td><strong><?php echo htmlspecialchars($flight['flight_id']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($flight['dep_iata']) . ' (' . htmlspecialchars($flight['dep_city']) . ')'; ?></td>
-                            <td><?php echo htmlspecialchars($flight['arr_iata']) . ' (' . htmlspecialchars($flight['arr_city']) . ')'; ?></td>
-                            <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
-                            <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>Nessun volo trovato.</p>
-        <?php endif; ?>
-    </div>
-    <div class="plane-seats-card">
-        <p>Controlla l'ID e la rotta nella tabella a sinistra prima di aggiungere un nuovo volo.</p>
-        <p>Ricorda di reindirizzare sempre a `admin.php?success=1` o `admin.php?error=...` da `manage_flights.php` per vedere i messaggi di conferma/errore qui.</p>
-    </div>
-</div>
+        <div class="flight-list-scroll-wrapper">
+             <div class="plane-list-card full-width-card">
+                <h3>Voli Attuali</h3>
+                <div class="scrollable-table-container">
+                    <?php if (!empty($flights)): ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID Volo</th>
+                                    <th>Partenza (IATA/City)</th>
+                                    <th>Arrivo (IATA/City)</th>
+                                    <th>Aereo ID</th>
+                                    <th>Stato</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($flights as $flight): ?>
+                                    <tr>
+                                        <td><strong><?php echo htmlspecialchars($flight['flight_id']); ?></strong></td>
+                                        <td><?php echo htmlspecialchars($flight['dep_iata']) . ' (' . htmlspecialchars($flight['dep_city']) . ')'; ?></td>
+                                        <td><?php echo htmlspecialchars($flight['arr_iata']) . ' (' . htmlspecialchars($flight['arr_city']) . ')'; ?></td>
+                                        <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
+                                        <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php else: ?>
+                        <p>Nessun volo trovato.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="plane-seats-card full-width-card">
+                <p>Controlla l'ID e la rotta nella tabella a sinistra prima di aggiungere un nuovo volo.</p>
+                <p>Ricorda di reindirizzare sempre a `admin.php?success=1` o `admin.php?error=...` da `manage_flights.php` per vedere i messaggi di conferma/errore qui.</p>
+            </div>
+        </div>
+        <hr>
+
         <h2>Manage Flights</h2>
         <div class="flight-management-grid">
             
@@ -265,13 +239,36 @@ $conn->close();
                     <input type="number" id="new_flight_id" name="flight_id" required>
 
                     <label for="d_airport">Departure Airport ID:</label>
-                    <input type="number" id="d_airport" name="d_airport_id" required>
+                    <select id="d_airport" name="d_airport_id" required>
+                        <option value="">Seleziona Partenza</option>
+                        <?php foreach ($airports as $a): ?>
+                            <option value="<?php echo htmlspecialchars($a['airport_id']); ?>">
+                                <?php echo htmlspecialchars($a['iata']) . ' (' . htmlspecialchars($a['city']) . ')'; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
                     <label for="a_airport">Arrival Airport ID:</label>
-                    <input type="number" id="a_airport" name="a_airport_id" required>
+                    <select id="a_airport" name="a_airport_id" required>
+                        <option value="">Seleziona Arrivo</option>
+                        <?php foreach ($airports as $a): ?>
+                            <option value="<?php echo htmlspecialchars($a['airport_id']); ?>">
+                                <?php echo htmlspecialchars($a['iata']) . ' (' . htmlspecialchars($a['city']) . ')'; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
                     <label for="plane_id">Plane ID (from list above):</label>
-                    <input type="number" id="plane_id" name="plane_id" required>
+                    <select id="plane_id" name="plane_id" required>
+                        <option value="">Seleziona Aereo</option>
+                        <?php foreach ($planes as $p): ?>
+                            <?php if (strpos($p['type_status'], 'Commercial') !== false): // Solo aerei Commerciali ?>
+                                <option value="<?php echo htmlspecialchars($p['plane_id']); ?>">
+                                    ID <?php echo htmlspecialchars($p['plane_id']) . ' ' . $p['type_status']; ?>
+                                </option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
 
                     <label for="status">Status:</label>
                     <select id="status" name="status" required>
@@ -291,23 +288,23 @@ $conn->close();
             </div>
 
             <div class="form-card">
-            <h3>Remove Existing Flight</h3>
-            <form method="post" action="manage_flights.php" class="flight-form">
-                <input type="hidden" name="action" value="remove">
-                
-                <label for="remove_flight_id">Flight ID to Remove:</label>
-                <select id="remove_flight_id" name="flight_id" required class="full-width-select">
-                    <option value="">Seleziona Volo da Rimuovere</option>
-                    <?php foreach ($existing_flights as $flight): ?>
-                        <option value="<?php echo htmlspecialchars($flight['id']); ?>">
-                            <?php echo htmlspecialchars($flight['label']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <h3>Remove Existing Flight</h3>
+                <form method="post" action="manage_flights.php" class="flight-form">
+                    <input type="hidden" name="action" value="remove">
+                    
+                    <label for="remove_flight_id">Flight ID to Remove:</label>
+                    <select id="remove_flight_id" name="flight_id" required class="full-width-select">
+                        <option value="">Seleziona Volo da Rimuovere</option>
+                        <?php foreach ($existing_flights as $flight): ?>
+                            <option value="<?php echo htmlspecialchars($flight['id']); ?>">
+                                <?php echo htmlspecialchars($flight['label']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
-                <button type="submit" class="btn-secondary">Remove Flight</button>
-            </form>
-        </div>
+                    <button type="submit" class="btn-secondary">Remove Flight</button>
+                </form>
+            </div>
         </div>
         
     </section>
