@@ -364,10 +364,11 @@ table tr:hover {
     flex-direction: column; 
     gap: 5px;
     
-    /* Regola chiave: Forzare il contenitore ad essere largo quanto il suo contenuto massimo,
-       permettendo al genitore (.airplane-layout) di scorrere. */
-    width: max-content; 
-    min-width: 100%; /* Assicura che riempia almeno la larghezza disponibile */
+   
+    
+    
+    
+       
 }
 
 .seat-row {
