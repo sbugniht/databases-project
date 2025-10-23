@@ -531,3 +531,149 @@ header nav {
         grid-template-columns: 1fr; /* Una colonna su mobile */
     }
 }
+/* --- LAYOUT AGGIUNTIVO PER ADMIN.PHP: NUOVE REGOLE PER MAPPA POSTI --- */
+
+/* Contenitore della Mappa dei Posti */
+.airplane-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Spazio tra le file */
+    padding: 15px 10px;
+    border: 2px solid #ddd;
+    border-radius: var(--border-radius);
+    background-color: #fcfcfc;
+    overflow-x: auto; /* Per schermi piccoli */
+    margin-top: 20px;
+}
+
+/* Indicatore di Cabina/Coda */
+.fuselage-marker {
+    text-align: center;
+    font-size: 0.8em;
+    color: var(--secondary-color);
+    padding: 5px 0;
+    border-bottom: 1px dashed #eee;
+}
+.fuselage-marker:last-of-type {
+    border-top: 1px dashed #eee;
+    border-bottom: none;
+}
+
+/* Indicatore del Corridoio */
+.aisle-marker {
+    text-align: center;
+    font-size: 0.7em;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+    margin-left: 10px; /* Allinea all'inizio dei posti */
+    /* Posiziona l'indicatore al centro del corridoio simulato */
+    padding-left: 70px; /* Spazio per A, B, C */
+}
+
+
+/* Riga di Posti */
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 3px; /* Spazio tra i posti affiancati */
+}
+
+/* Etichetta della Riga (1, 2, 3...) */
+.row-label {
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-right: 15px;
+    min-width: 20px;
+    text-align: right;
+    font-size: 0.9em;
+}
+
+/* Bottone Posto */
+.seat-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: default;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-align: center;
+    line-height: 30px;
+    padding: 0;
+}
+
+/* Posto Disponibile (Verde) */
+.seat-btn.available {
+    background-color: var(--success-color);
+    color: var(--text-light);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.4);
+}
+
+/* Posto Riservato (Rosso) */
+.seat-btn.reserved {
+    background-color: var(--error-color);
+    color: var(--text-light);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4);
+}
+
+/* Separatore Corridoio */
+.seat-btn.has-aisle {
+    margin-right: 20px; /* Larghezza del corridoio */
+}
+
+/* Regole per la Nuova Lista Voli */
+.admin-management table {
+    margin-top: 0;
+}
+.admin-management th {
+    font-size: 0.9em;
+    padding: 8px 12px;
+}
+.admin-management td {
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+/* Sovrascrivi il placeholder generico per accogliere la mappa */
+.seat-map-placeholder {
+    height: auto; /* Adatta l'altezza al contenuto */
+    border: none;
+    background-color: transparent;
+    padding: 0;
+}
+.seat-map-placeholder > p { /* Stile per il messaggio di selezione aereo */
+    text-align: center;
+    padding: 50px 0;
+    margin: 0;
+    border: 1px dashed var(--secondary-color);
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+
+/* Rimuovi l'allineamento a destra che interferisce con il form di selezione */
+.flight-management-grid .form-card label {
+    text-align: left;
+}
+.flight-management-grid .form-card input,
+.flight-management-grid .form-card select {
+    grid-column: 1 / 3; /* Ripristina l'input su tutta la larghezza */
+}
+.flight-management-grid .form-card label {
+    grid-column: 1 / 3; /* Ripristina la label su tutta la larghezza */
+}
+/* Modifica il form di gestione per avere 2 colonne etichetta-input */
+.flight-management-grid .flight-form {
+    grid-template-columns: 1fr 2fr;
+}
+.flight-management-grid .flight-form label {
+    grid-column: 1 / 2;
+    text-align: right;
+}
+.flight-management-grid .flight-form input,
+.flight-management-grid .flight-form select {
+    grid-column: 2 / 3;
+}
+.flight-management-grid .flight-form button {
+    grid-column: 1 / 3;
+}
