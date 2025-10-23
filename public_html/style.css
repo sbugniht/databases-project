@@ -106,7 +106,7 @@ input[type="text"],
 input[type="date"],
 input[type="number"],
 input[type="password"],
-.flight-form select { /* Target Select elements inside flight-form */
+.flight-form select { 
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #ddd;
@@ -179,7 +179,7 @@ button[type="submit"]:hover {
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
     max-width: 900px;
-    margin: -80px auto 30px; 
+    margin: -80px auto 30px; /* Solleva la card sopra l'immagine */
     display: flex;
     flex-direction: column;
 }
@@ -231,6 +231,25 @@ table th {
 }
 table tr:hover {
     background-color: #f9f9f9;
+}
+
+
+/* --- LOGIN CONTAINER (login.php) --- */
+.login-container {
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 40px;
+    background-color: var(--background-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    text-align: center;
+}
+.login-container h2 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+.login-container form input {
+    margin-bottom: 15px;
 }
 
 
@@ -318,37 +337,42 @@ table tr:hover {
 }
 
 
-/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE) --- */
+/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE RISOLTO) --- */
 
 .plane-seats-card {
     overflow: hidden; 
 }
 
 .airplane-layout {
-    /* Mantiene le proprietà di scrolling orizzontale */
+    /* Abilita lo scrolling orizzontale se il contenuto supera la larghezza */
     overflow-x: auto; 
-     
     padding: 15px 10px;
     border: 2px solid #ddd;
     border-radius: var(--border-radius);
     background-color: #fcfcfc;
     margin-top: 20px;
-    white-space: no wrap; /* Impedisce il wrap: ESSENZIALE per lo scroll orizzontale */
+    
+    /* Il contenitore esterno non forza lo spazio, ma abilita lo scroll */
+    white-space: normal; 
+}
+
+/* Contenitore interno che gestisce la pila verticale delle righe */
+.seat-rows-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .seat-row {
     display: flex;
     align-items: center;
     gap: 5px; 
-    white-space: nowrap; /* Impedisce il wrap: ESSENZIALE per lo scroll orizzontale */
+    /* Regola CRITICA: Forza la riga a non andare a capo, abilitando lo scroll */
+    white-space: nowrap; 
     margin-bottom: 5px;
-}
-
-/* Nuovo contenitore per tutte le righe */
-.seat-rows-container {
-    display: flex;
-    flex-direction: column; /* Le righe sono una sopra l'altra */
-    gap: 5px;
+    
+    /* Impedisce alla riga di rimpicciolirsi, mantenendo la sua larghezza completa */
+    flex-shrink: 0; 
 }
 
 /* Indicatori */
@@ -394,7 +418,7 @@ table tr:hover {
     text-align: center;
     line-height: 30px;
     padding: 0;
-    flex-shrink: 0; /* Impedisce ai bottoni di rimpicciolirsi durante lo scroll */
+    flex-shrink: 0; 
 }
 
 .seat-btn.available {
@@ -428,7 +452,7 @@ table tr:hover {
     }
     .flight-management-grid,
     .plane-inventory-container {
-        grid-template-columns: 1fr; /* Una colonna su mobile */
+        grid-template-columns: 1fr; 
     }
     .flight-list-scroll-wrapper {
         flex-direction: column;
