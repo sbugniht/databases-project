@@ -1,4 +1,6 @@
-/* BASE RESET & TYPOGRAPHY */
+/* =============================================== */
+/* === BASE RESET & TYPOGRAPHY & VARIABLES === */
+/* =============================================== */
 :root {
     --primary-color: #ff3300; /* Rosso/Arancio Solido */
     --primary-hover: #b31e00;
@@ -101,7 +103,26 @@ header nav {
 }
 
 
-/* --- GENERAL FORMS & INPUTS --- */
+/* --- HERO SECTION (index.php) --- */
+.hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('images/hero-bg.jpg') no-repeat center center/cover;
+    color: var(--text-light);
+    text-align: center;
+    padding: 100px 20px 150px;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+/* --- GENERAL FORMS, BUTTONS & MESSAGES --- */
 input[type="text"],
 input[type="date"],
 input[type="number"],
@@ -120,7 +141,6 @@ input:focus,
     outline: none;
 }
 
-/* BUTTONS */
 .btn-primary,
 button[type="submit"] {
     background-color: var(--primary-color);
@@ -139,7 +159,6 @@ button[type="submit"]:hover {
     background-color: var(--primary-hover);
 }
 
-/* MESSAGES */
 .error {
     color: var(--error-color);
     font-weight: 600;
@@ -152,7 +171,8 @@ button[type="submit"]:hover {
 }
 
 
-/* --- MAIN LAYOUT CONTAINERS --- */
+/* --- SEARCH & LOGIN CONTAINERS --- */
+
 .results, .admin-management, .user-container {
     max-width: 1200px;
     margin: 30px auto;
@@ -171,26 +191,41 @@ button[type="submit"]:hover {
     text-align: center;
 }
 
+/* Login Page */
+.login-container {
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 40px;
+    background-color: var(--background-dark);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    text-align: center;
+}
+.login-container h2 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+.login-container form input {
+    margin-bottom: 15px;
+}
 
-/* --- SEARCH CARD (INDEX & USER) --- */
+/* Search Card (Homepage) */
 .search-card {
     background-color: var(--background-dark);
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
     max-width: 900px;
-    margin: -80px auto 30px; /* Solleva la card sopra l'immagine */
+    margin: -80px auto 30px; 
     display: flex;
     flex-direction: column;
 }
-
 .search-card form {
     display: flex;
     gap: 15px;
     flex-wrap: wrap; 
     align-items: flex-end;
 }
-
 .user-search { /* Specific for user page */
     box-shadow: none; 
     margin: 0 auto 30px auto;
@@ -209,7 +244,7 @@ button[type="submit"]:hover {
 }
 
 
-/* --- RESULTS TABLE --- */
+/* --- RESULTS & TABLE STYLES --- */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -234,26 +269,7 @@ table tr:hover {
 }
 
 
-/* --- LOGIN CONTAINER (login.php) --- */
-.login-container {
-    max-width: 400px;
-    margin: 80px auto;
-    padding: 40px;
-    background-color: var(--background-dark);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    text-align: center;
-}
-.login-container h2 {
-    margin-bottom: 20px;
-    color: var(--primary-color);
-}
-.login-container form input {
-    margin-bottom: 15px;
-}
-
-
-/* --- ADMIN MANAGEMENT (GRID LAYOUTS) --- */
+/* --- ADMIN MANAGEMENT (GRID & SCROLLING) --- */
 
 .plane-inventory-container,
 .flight-management-grid {
@@ -275,23 +291,6 @@ table tr:hover {
     padding: 20px;
     border-radius: var(--border-radius);
     border: 1px solid #eee;
-}
-
-.plane-list-card h3, .form-card h3 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-}
-
-.plane-list-card ul {
-    list-style: none;
-    padding-left: 0;
-}
-
-.plane-list-card li {
-    padding: 5px 0;
-    border-bottom: 1px dotted #f0f0f0;
 }
 
 /* Moduli di Gestione (Add/Remove) */
@@ -318,8 +317,23 @@ table tr:hover {
     margin-top: 15px;
 }
 
+.plane-list-card h3, .form-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+.plane-list-card ul {
+    list-style: none;
+    padding-left: 0;
+}
+.plane-list-card li {
+    padding: 5px 0;
+    border-bottom: 1px dotted #f0f0f0;
+}
 
-/* --- VOLI SCORREVOLI (VERTICALE) --- */
+
+/* VOLI SCORREVOLI (VERTICALE) */
 .scrollable-table-container {
     max-height: 250px; 
     overflow-y: auto; 
@@ -337,11 +351,10 @@ table tr:hover {
 }
 
 
-/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE - FIX DEFINITIVO) --- */
+/* --- MAPPA POSTI (ORIZZONTALE/SCORREVOLE FIX FINALE) --- */
 
 .plane-seats-card {
-    /* Mantiene il contenitore principale per l'overflow */
-    overflow: hidden; 
+    overflow: hidden; /* Nasconde scrollbar accidentali del contenitore */
 }
 
 .airplane-layout {
@@ -353,22 +366,17 @@ table tr:hover {
     background-color: #fcfcfc;
     margin-top: 20px;
     
-    /* Contiene gli indicatori e le righe: impila verticalmente */
+    /* Mantiene la struttura verticale (indicatori e righe) */
     display: flex; 
     flex-direction: column;
 }
 
-/* Contenitore interno che gestisce la pila verticale delle righe */
+/* Contenitore intermedio che FORZA la larghezza orizzontale */
 .seat-rows-container {
-    display: flex;
+    /* FIX: inline-flex forza il contenitore a occupare SOLO la larghezza del suo contenuto */
+    display: inline-flex; 
     flex-direction: column; 
     gap: 5px;
-    
-   
-    
-    
-    
-       
 }
 
 .seat-row {
@@ -376,34 +384,15 @@ table tr:hover {
     align-items: center;
     gap: 5px; 
     
-    /* ESSENZIALE: impedisce ai posti di andare a capo */
+    /* CRITICO: Impedisce ai posti di andare a capo, forzando lo scroll */
     white-space: nowrap; 
     margin-bottom: 5px;
     
-    /* Garantisce che la riga intera scorra orizzontalmente */
+    /* Impedisce alle righe di rimpicciolirsi quando lo spazio è limitato */
     flex-shrink: 0; 
 }
 
-/* Indicatore del Corridoio */
-.aisle-marker {
-    /* La posizione è calcolata in base alla larghezza degli elementi A, B, C e del loro gap */
-    text-align: left;
-    margin-left: 55px; 
-    padding-left: 0;
-    font-size: 0.7em;
-    font-weight: 600;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-}
-
-/* Posti */
-.seat-btn {
-    flex-shrink: 0; /* Impedisce al bottone di rimpicciolirsi */
-    width: 30px;
-    height: 30px;
-    /* ... (altri stili) ... */
-}
-
+/* Indicatori e Posti */
 .fuselage-marker {
     text-align: center;
     font-size: 0.8em;
@@ -415,7 +404,15 @@ table tr:hover {
     border-top: 1px dashed #eee;
     border-bottom: none;
 }
-/* Posti */
+.aisle-marker {
+    text-align: left;
+    margin-left: 55px; 
+    padding-left: 0;
+    font-size: 0.7em;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
 .row-label {
     font-weight: 700;
     color: var(--text-dark);
@@ -425,25 +422,71 @@ table tr:hover {
     font-size: 0.9em;
 }
 
-
+.seat-btn {
+    flex-shrink: 0; 
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: default;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-align: center;
+    line-height: 30px;
+    padding: 0;
+}
 
 .seat-btn.available {
     background-color: var(--success-color); 
     color: var(--text-light);
 }
-
 .seat-btn.reserved {
     background-color: var(--error-color); 
     color: var(--text-light);
 }
-
 .seat-btn.has-aisle {
     margin-right: 20px; /* Larghezza del corridoio */
 }
-
 .seat-btn.firstclass { border: 2px solid gold; }
 .seat-btn.business { border: 2px solid silver; }
 .seat-btn.economy { border: 2px solid #bbb; }
+
+
+/* --- DISCLAIMER & FOOTER --- */
+.disclaimer {
+    background-color: #e9ecef;
+    color: var(--secondary-color);
+    padding: 20px 5%;
+    font-size: 0.85rem;
+    text-align: justify;
+    margin-top: auto; 
+}
+.image-gallery { /* Imprint page images */
+    display: flex; 
+    gap: 10px;    
+    margin: 20px auto;
+    max-width: 1000px; 
+}
+.gallery-img {
+    width: 100%; 
+    flex: 1;     
+    height: auto;
+    object-fit: cover; 
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+
+footer {
+    background-color: var(--text-dark);
+    color: var(--text-light);
+    padding: 15px 5%;
+    text-align: center;
+    font-size: 0.9rem;
+}
+footer a {
+    color: var(--text-light);
+    text-decoration: none;
+}
 
 
 /* --- RESPONSIVENESS --- */
@@ -462,6 +505,13 @@ table tr:hover {
     }
     .flight-list-scroll-wrapper {
         flex-direction: column;
+    }
+    .image-gallery {
+        flex-direction: column;
+        align-items: center;
+    }
+    .gallery-img {
+        max-width: 90%; 
     }
 }
 
