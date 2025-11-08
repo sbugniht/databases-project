@@ -228,12 +228,13 @@ button[type="submit"]:hover {
 }
 
 .abort-button {
-    display: block;
+    display: inline-block;
     width: 100%;
     padding: 8px 15px;
     margin-top: 10px;
     text-align: center;
     text-decoration: none;
+    white-space: nowrap;
 
     background-color: var(--secondary-color);
     color: #333;
@@ -245,8 +246,9 @@ button[type="submit"]:hover {
     position: absolute;
     top: 50%;
     right: 20px;
+    left: auto;
     transform: translateY(-50%);
-    z-index: 100;
+    
 }
 
 .abort-button:hover {
