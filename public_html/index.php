@@ -1,6 +1,30 @@
 
 <?php
 
+$log_file = __DIR__ . '/mainPage.log';
+$ip_address = $_SERVER['REMOTE_ADDR'] ?? 'N/A';
+$timestamp = date('d/M/Y:H:i:s O');
+$request_methos = $_SERVER['REQUEST_METHOD'] ??'GET';
+
+$request_uri = $_SERVER['REQUEST_URI'] ?? '/';
+$protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+$status_code = '200';
+$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'No Browser Info';
+
+$log_line = sprintf(
+    '%s - - [%s] "%s %s %s" %s - "%s" "%s"',
+    $ip_address,
+    $timestamp,
+    $request_method,
+    $request_uri,
+    $protocol,
+    $status_code,
+    $_SERVER['HTTP_REFERER'] ?? '-', 
+    $user_agent
+);
+
+file_put_contents($log_file, $log_line . "\n", FILE_APPEND);
+
 $servername = "127.0.0.1";
 $username = "gbrugnara";
 $password = "KeRjnLwqj+rTTG3E";
@@ -10,7 +34,9 @@ $conn = new mysqli($servername, $username, $password, $dbname, null, "/run/mysql
 
 
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+  $error_message = "Connection failed: " . $conn->connect_error;
+  error_log("Fatal error:" . $error_message, 0);
+  die($error_message);
 }
 
 $message = "";

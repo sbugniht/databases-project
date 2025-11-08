@@ -74,6 +74,8 @@ $conn->close();
       <button type="submit">Login</button>
     </form>
     <?php echo $message; ?>
+
+    <a href="index.php" class="abort-button">Abort Login</a>
   </div>
 </body>
 </html>

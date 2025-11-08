@@ -2,7 +2,7 @@
 :root {
     --primary-color: #ff3300; 
     --primary-hover: #b31e00;
-    --secondary-color: #6c757d; 
+    --secondary-color: #7291ac; 
     --background-light: #f4f7f9;
     --background-dark: #ffffff;
     --text-dark: #333333;
@@ -226,6 +226,28 @@ button[type="submit"]:hover {
     box-shadow: var(--card-shadow);
     text-align: center;
 }
+
+.abort-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    text-align: center;
+    text-decoration: none;
+
+    background-color: var(--secondary-color);
+    color: #333;
+    border: 1 px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: var(--background-dark) 0.3s;
+}
+
+.abort-button:hover {
+    background-color: #5a7184;
+    color: var(--text-light);
+}
+
 
 
 .search-card {
