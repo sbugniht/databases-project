@@ -4,7 +4,7 @@
 $log_file = __DIR__ . '/mainPage.log';
 $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'N/A';
 $timestamp = date('d/M/Y:H:i:s O');
-$request_methos = $_SERVER['REQUEST_METHOD'] ??'GET';
+$request_method = $_SERVER['REQUEST_METHOD'] ??'GET';
 
 $request_uri = $_SERVER['REQUEST_URI'] ?? '/';
 $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
