@@ -63,6 +63,9 @@ $conn->close();
     <div class="logo-wrapper">
       <img src="images/logo.JPG" alt="SkyBook Logo" class="logo-image">
       <div class="logo">SkyBook</div>
+    
+      <a href="index.php" class="abort-button">Abort Login</a>
+    
     </div>
   </header>
 
@@ -75,7 +78,7 @@ $conn->close();
     </form>
     <?php echo $message; ?>
 
-    <a href="index.php" class="abort-button">Abort Login</a>
+    
   </div>
 </body>
 </html>
