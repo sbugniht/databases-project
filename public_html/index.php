@@ -1,29 +1,7 @@
 
 <?php
 
-$log_file = __DIR__ . '/mainPage.log';
-$ip_address = $_SERVER['REMOTE_ADDR'] ?? 'N/A';
-$timestamp = date('d/M/Y:H:i:s O');
-$request_method = $_SERVER['REQUEST_METHOD'] ??'GET';
-
-$request_uri = $_SERVER['REQUEST_URI'] ?? '/';
-$protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
-$status_code = '200';
-$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'No Browser Info';
-
-$log_line = sprintf(
-    '%s - - [%s] "%s %s %s" %s - "%s" "%s"',
-    $ip_address,
-    $timestamp,
-    $request_method,
-    $request_uri,
-    $protocol,
-    $status_code,
-    $_SERVER['HTTP_REFERER'] ?? '-', 
-    $user_agent
-);
-
-file_put_contents($log_file, $log_line . "\n", FILE_APPEND);
+include_once 'logTracker.php';
 
 $servername = "127.0.0.1";
 $username = "gbrugnara";
@@ -81,8 +59,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $search_results[] = $row;
             }
             $message = "<p class='success'>". $result->num_rows . " flights found.</p>";
+            log_event("SEARCH_SUCCESS", "Flight Found: " . $result->num_rows . " flights for search: Departure='$departure', Arrival='$arrival'", $ip_address);
         } else {
             $message = "<p class='error'>No flights found matching your search.</p>";
+            log_event("SEARCH_FAILURE", "No flights found for search: Departure='$departure', Arrival='$arrival'", $ip_address);
         }
 
         

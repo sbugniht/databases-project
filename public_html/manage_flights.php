@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+include_once 'logTracker.php';
 
 $servername = "127.0.0.1";
 $username_db = "gbrugnara";
@@ -52,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $conn->commit();
             $success = true;
             $message = "Flight $flight_id successfully added as $flight_type.";
-
+            log_event("FLIGHT_ADD_SUCCESS", "Flight $flight_id successfully added as $flight_type.", $_SESSION['user_id']);
         } elseif ($action === 'remove') {
             
             
@@ -78,12 +79,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $conn->commit();
             $success = true;
             $message = "Flight $flight_id and all related data successfully removed.";
+            log_event("FLIGHT_REMOVE_SUCCESS", "Flight $flight_id and all related data successfully removed.", $_SESSION['user_id']);
         }
     
     } catch (mysqli_sql_exception $e) {
         
         $conn->rollback();
         $message = "Operation failed: " . $e->getMessage();
+        $log_action = strtoupper($action) . "_FLIGHT_FAILED";
+        $log_message = "Flight $flight_id failed ($action). Error: " . $e->getMessage();
+        
+        log_event($log_action, $log_message, $_SESSION["user_id"]);
     }
     
     $conn->close();

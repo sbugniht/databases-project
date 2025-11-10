@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+include_once 'logTracker.php';
 
 $servername = "127.0.0.1";
 $username_db = "gbrugnara";
@@ -9,13 +10,19 @@ $dbname = "db_gbrugnara";
 $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
 
 
-if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 0) {
-  header("Location: login.php");
-  exit();
-}
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
+
+if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 0) {
+  $attempt_user = $_SESSION['user_id'] ?? 'GUEST';
+  log_event("ACCESS_DENIED", "Attempted customer board access without valid privilege.", $attempt_user);
+  header("Location: login.php");
+  exit();
+}
+
+$customer_id = $_SESSION['user_id'];
+log_event("CUSTOMER_ACCESS_SUCCESS", "Customer board access granted.", $customer_id);
 
 $message = "";
 $search_results = [];
@@ -24,14 +31,12 @@ $departure = '';
 $arrival = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'search') {
-    
-    
+       
     $departure = trim($_POST['departure'] ?? '');
     $arrival = trim($_POST['arrival'] ?? '');
     
     if (!empty($departure) && !empty($arrival)) {
-
-        
+ 
         $sql = "
             SELECT 
                 VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, 
@@ -98,13 +103,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                     ];
                 }
                 $message = "<p class='success'>Flights found. Click an available seat to book!</p>";
+                log_event("FLIGHT_SEARCH_SUCCESS", "Flights found for search: Departure='$departure', Arrival='$arrival'", $user_id);
             } else {
                 $message = "<p class='error'>No available seats found for the selected route.</p>";
+                log_event("FLIGHT_SEARCH_FAIL", "No existing flight for search: Departure='$departure', Arrival='$arrival'", $user_id);
             }
             $stmt->close();
         }
     } else {
         $message = "<p class='error'>Please enter both a Departure and Arrival location.</p>";
+        log_event("FLIGHT_SEARCH_FAIL", "Missing departure or arrival location in search.", $user_id);
     }
 }
 

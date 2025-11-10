@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+include_once 'logTracker.php';
 
 $servername = "127.0.0.1";
 $username_db = "gbrugnara";
@@ -13,7 +14,9 @@ if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 0) {
-  die("Access Denied. Only logged-in customers can book flights.");
+    $attempt_user = $_SESSION['user_id'] ?? 'GUEST';
+    log_event("ACCESS_DENIED", "Attempted unauthorized booking access.", $attempt_user);
+    die("Access Denied. Only logged-in customers can book flights.");
 }
 
 $user_id = $_SESSION['user_id'];
@@ -34,6 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['flight_id']) && isset(
 
     if ($check_result->num_rows > 0) {
         $message = "Booking failed: The seat has just been taken.";
+        log_event("BOOKING_FAILURE", "Seat $seat_id on Flight $flight_id already booked.", $user_id);
     } else {
         try {
             
@@ -45,14 +49,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['flight_id']) && isset(
             if ($stmt->affected_rows === 1) {
                 $success = true;
                 $message = "Successfully booked seat $seat_id on Flight $flight_id!";
+                log_event("BOOKING_SUCCESS", $message, $user_id);
             } else {
                 $message = "Booking failed: Could not insert record.";
+                log_event("BOOKING_FAILURE", $message, $user_id);
             }
             $stmt->close();
 
         } catch (mysqli_sql_exception $e) {
             
             $message = "Booking failed due to an error: " . $e->getMessage();
+            log_event("BOOKING_FAILURE", $message, $user_id);
         }
     }
     

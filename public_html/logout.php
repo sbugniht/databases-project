@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+include_once 'logTracker.php';
 
 $_SESSION = array();
 

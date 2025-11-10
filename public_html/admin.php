@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+include_once 'logTracker.php';
+
 $servername = "127.0.0.1";
 $username_db = "gbrugnara"; 
 $password_db = "KeRjnLwqj+rTTG3E";
@@ -17,6 +19,9 @@ if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
   header("Location: login.php");
   exit();
 }
+
+$admin_id = $_SESSION['user_id'];
+log_event("ADMIN_ACCESS_SUCCESS", "Admin dashboard access granted.", $admin_id);
 
 
 $airports = [];
@@ -123,9 +128,11 @@ if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) {
             if ($seat_counter % $seats_per_row === 0) {
                 $row_index++;
             }
+            log_event("ADMIN_VIEW_SEATS_SUCCESS","Seat map visualized for Flight ID: " . $target_flight_id, $_SESSION['user_id']);
         }
     } else {
         $error_message = "Nessun posto trovato per il Volo ID $target_flight_id.";
+        log_event("ADMIN_VIEW_SEATS_FAILURE","No seats found for Flight ID: " . $target_flight_id, $_SESSION['user_id']);
     }
     $stmt_seat_data->close();
 

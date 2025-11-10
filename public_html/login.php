@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+include_once 'logTracker.php';
+
 $servername = "127.0.0.1";
 $username_db = "gbrugnara"; 
 $password_db = "KeRjnLwqj+rTTG3E";
@@ -32,7 +34,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['user_id'] = $row['USER_ID']; 
     $_SESSION['privilege'] = $row['privilege']; 
 
-    
+    $user_id = $row['USER_ID'];
+    $privilege_level = (int)$row['privilege'];
+    $event_message = ($privilege_level === 1) ? "Admin User ID:" .$user_id . "logged in successfully." : 
+                                                "Customer User ID:" .$user_id . " logged in successfully.";
+
+    log_event("LOGIN_SUCCESS", $event_message, $user_id);                                         
     if ((int)$row['privilege'] === 1) {
       header("Location: admin.php");
       exit();
@@ -42,6 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
   } else {
     $message = "<p class='error'>Invalid User ID or password</p>";
+    log_event("LOGIN_FAILURE", "Failed login attempt for User ID: " . $user_id_input, $user_id_input);
   }
 
   $stmt->close();
