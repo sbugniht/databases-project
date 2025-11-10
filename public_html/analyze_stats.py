@@ -1,152 +1,132 @@
 # -*- coding: utf-8 -*-
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+
+import re
+import csv
 import sys
-from datetime import datetime
+import pandas as pd
 
 
-INPUT_ACCESS_CSV = 'access_data.csv'
-INPUT_EVENTS_CSV = 'events_data.csv'
-OUTPUT_PDF = 'WebLog_Analysis_Diagrams.pdf'
-
-
-
-def load_data(csv_path):
-    """Loads CSV data and converts the timestamp column to datetime objects."""
-    try:
-        
-        df = pd.read_csv(csv_path)
-        
-        # Parse the timestamp (Format: DD/Mon/YYYY:HH:MM:SS +/-TZ)
-        df['timestamp'] = pd.to_datetime(df['timestamp'], format='%d/%b/%Y:%H:%M:%S %z', utc=True)
-        return df
-        
-    except FileNotFoundError:
-        print(f"Error: CSV file not found at '{csv_path}'. Please ensure the file is downloaded from the server.", file=sys.stderr)
-        return None
-    except Exception as e:
-        print(f"Error parsing data in {csv_path}: {e}", file=sys.stderr)
-        return None
+ACCESS_LOG_FILE = 'application.log'
+EVENTS_LOG_FILE = 'events.log'
+OUTPUT_ACCESS_CSV = 'access_data.csv'
+OUTPUT_EVENTS_CSV = 'events_data.csv'
 
 
 
-def plot_access_timeline(df_access, pdf):
-    """Creates a scatter plot showing access events over time (Timeline Diagram)."""
-    
-    fig, ax = plt.subplots(figsize=(14, 7))
-    
-    
-    ax.plot(df_access['timestamp'], df_access['uri_path'], 'o', 
-            markersize=5, alpha=0.6, label='Page Access (GET/Other)')
-    
-    
-    df_post = df_access[df_access['method'] == 'POST']
-    ax.plot(df_post['timestamp'], df_post['uri_path'], 'x', 
-            markersize=8, color='red', label='Search / Form Submission (POST)')
-    
-    ax.set_title('Website Access Timeline and User Activity')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Page/Resource Accessed (URI)')
-    ax.legend(loc='lower right')
-    ax.grid(True, axis='x', linestyle='--')
-    
-    
-    fig.autofmt_xdate()
-    pdf.savefig(fig)
-    plt.close(fig)
-    print("Generated: Access Timeline.")
+
+ACCESS_LOG_PATTERN = re.compile(
+    r'^\[(.*?)\] '          # 1. IP Address
+    r'\[(.*?)\] '          # 2. User ID (ID or GUEST)
+    r'- - '
+    r'\[(.*?)\] '          # 3. Timestamp
+    r'"(GET|POST|HEAD|PUT|DELETE) ' # 4. Method
+    r'(\S+) '              # 5. URI/Page
+    r'(\S+)" '             # 6. Protocol
+    r'(\d{3}) '             # 7. Status Code
+    r'- '
+    r'"(.*?)" '             # 8. Referer
+    r'"(.*?)"$'             # 9. User-Agent
+)
 
 
-def plot_error_event_timeline(df_events, pdf):
-    """Creates a timeline showing specific application events (Errors, Login, Booking)."""
-    
-    fig, ax = plt.subplots(figsize=(14, 7))
-    
-    
-    df_failure = df_events[df_events['event_type'].str.contains('FAIL|DENIED|ERROR')]
-    df_success = df_events[df_events['event_type'].str.contains('SUCCESS')]
-    
-    
-    ax.plot(df_success['timestamp'], df_success['event_type'], 'o', 
-            markersize=8, color='green', alpha=0.6, label='Success Events (Login, Booking, Search)')
-    
-    
-    ax.plot(df_failure['timestamp'], df_failure['event_type'], 'x', 
-            markersize=8, color='red', label='Error/Failure Events (Login Fail, Booking Fail, Access Denied)')
-            
-    ax.set_title('Application Event and Error Timeline (Login, Booking, Admin Actions)')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Event Type')
-    ax.legend(loc='lower right')
-    ax.grid(True, axis='x', linestyle='--')
-    
-    
-    fig.autofmt_xdate()
-    pdf.savefig(fig)
-    plt.close(fig)
-    print("Generated: Error/Event Timeline.")
-    
+EVENT_LOG_PATTERN = re.compile(
+    r'^\[(.*?)\] '         # 1. Timestamp
+    r'\[(.*?)\] '         # 2. Event Type
+    r'\[(.*?)\] '         # 3. IP Address
+    r'\[(.*?)\] '         # 4. User ID
+    r'(.*)$'              # 5. Message
+)
 
-def plot_statistics(df_access, df_events, pdf):
-    """Generates bar charts for key statistics: Browsers and Top Users/IPs."""
-    
-    
-    fig_browser, ax_browser = plt.subplots(figsize=(10, 6))
-    browser_counts = df_access['browser'].value_counts()
-    browser_counts.plot(kind='bar', ax=ax_browser, color='skyblue')
-    ax_browser.set_title('Website Access by Browser Type')
-    ax_browser.set_xlabel('Browser')
-    ax_browser.set_ylabel('Total Requests')
-    ax_browser.tick_params(axis='x', rotation=45)
-    plt.tight_layout()
-    pdf.savefig(fig_browser)
-    plt.close(fig_browser)
-    print("Generated: Browser Statistics.")
-    
-    
-    fig_user, ax_user = plt.subplots(figsize=(10, 6))
-    
-    
-    user_activity = df_access[df_access['user_id'] != 'GUEST']['user_id'].value_counts().head(10)
-    
-    if not user_activity.empty:
-        user_activity.plot(kind='bar', ax=ax_user, color='lightcoral')
-        ax_user.set_title('Top 10 Most Active Logged-in Users (by ID)')
-        ax_user.set_xlabel('User ID')
-        ax_user.set_ylabel('Total Page Views')
-        ax_user.tick_params(axis='x', rotation=0)
-        plt.tight_layout()
-        pdf.savefig(fig_user)
-        plt.close(fig_user)
-        print("Generated: Top User Statistics.")
+
+
+
+def extract_browser_from_ua(user_agent):
+    """Extracts the browser name (simplified)."""
+    ua = user_agent.lower()
+    if 'chrome' in ua and 'safari' in ua and 'edge' not in ua:
+        return 'Chrome'
+    elif 'firefox' in ua:
+        return 'Firefox'
+    elif 'safari' in ua and 'chrome' not in ua:
+        return 'Safari'
+    elif 'opera' in ua or 'opr' in ua:
+        return 'Opera'
+    elif 'msie' in ua or 'trident' in ua:
+        return 'IE/Edge'
     else:
-        print("Skipped: Top User Statistics (No logged-in activity found).")
+        return 'Unknown'
+
+def parse_log_file(log_path, pattern, log_type):
+    """Generic function to parse log files."""
+    records = []
+    
+    try:
+        with open(log_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                match = pattern.match(line)
+                if match:
+                    if log_type == 'access':
+                        # Groups: 1:IP, 2:USER_ID, 3:TIME, 4:METHOD, 5:URI, ... 9:UA
+                        ip, user_id, time_str, method, uri, _, status, _, user_agent = match.groups()
+                        path = uri.split('?')[0]
+                        browser = extract_browser_from_ua(user_agent)
+                        
+                        records.append({
+                            'timestamp': time_str,
+                            'ip': ip,
+                            'user_id': user_id, 
+                            'method': method,
+                            'uri_path': path,
+                            'browser': browser,
+                            'status': status
+                        })
+                    
+                    elif log_type == 'event':
+                        # Groups: 1:TIME, 2:EVENT_TYPE, 3:IP, 4:USER_ID, 5:MESSAGE
+                        time_str, event_type, ip, user_id, message = match.groups()
+                        
+                        records.append({
+                            'timestamp': time_str,
+                            'event_type': event_type,
+                            'ip': ip,
+                            'user_id': user_id,
+                            'message': message.strip()
+                        })
+        return records
+
+    except FileNotFoundError:
+        print(f"Error: Log file {log_path} not found.")
+        return []
+
+def write_csv_pandas(records, output_path, fieldnames):
+    """Uses Pandas to save data to CSV (more robust in Py3)."""
+    if not records:
+        print(f"Warning: No data to write to {output_path}.")
+        return
+
+    try:
+        df = pd.DataFrame(records)
+        df.to_csv(output_path, index=False, columns=fieldnames, encoding='utf-8')
+        print(f"File {output_path} saved with {len(records)} rows.")
+        
+    except Exception as e:
+        print(f"Error writing CSV file with Pandas: {e}", file=sys.stderr)
+
 
 
 
 if __name__ == '__main__':
+    print("Starting log analysis (Python 3.6 with Pandas)...")
     
-    from matplotlib.backends.backend_pdf import PdfPages
     
-    df_access = load_data(INPUT_ACCESS_CSV)
-    df_events = load_data(INPUT_EVENTS_CSV)
-
-    if df_access is None and df_events is None:
-        print("Cannot proceed. No data files were successfully loaded.")
-        sys.exit(1)
-
-    print("\n--- Generating Plots ---")
+    access_records = parse_log_file(ACCESS_LOG_FILE, ACCESS_LOG_PATTERN, 'access')
+    access_fields = ['timestamp', 'ip', 'user_id', 'method', 'uri_path', 'browser', 'status']
+    write_csv_pandas(access_records, OUTPUT_ACCESS_CSV, access_fields)
     
-    with PdfPages(OUTPUT_PDF) as pdf:
-        
-        if df_access is not None and not df_access.empty:
-            plot_access_timeline(df_access, pdf)
-            plot_statistics(df_access, df_events, pdf)
-
-        
-        if df_events is not None and not df_events.empty:
-            plot_error_event_timeline(df_events, pdf)
-        
-        print(f"\nSuccessfully created all diagrams in {OUTPUT_PDF}")
+    
+    event_records = parse_log_file(EVENTS_LOG_FILE, EVENT_LOG_PATTERN, 'event')
+    event_fields = ['timestamp', 'event_type', 'ip', 'user_id', 'message']
+    write_csv_pandas(event_records, OUTPUT_EVENTS_CSV, event_fields)
+    
+    print("\nAnalysis complete. Download CSV files for graphical visualization.")
