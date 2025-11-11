@@ -7,8 +7,8 @@ import sys
 import pandas as pd
 
 
-ACCESS_LOG_FILE = 'application.log'
-EVENTS_LOG_FILE = 'events.log'
+ACCESS_LOG_FILE = 'pagVisited.log'
+EVENTS_LOG_FILE = 'eventTracker.log'
 OUTPUT_ACCESS_CSV = 'access_data.csv'
 OUTPUT_EVENTS_CSV = 'events_data.csv'
 
