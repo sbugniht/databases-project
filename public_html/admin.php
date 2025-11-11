@@ -107,6 +107,9 @@ if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) {
     $result_seat_data = $stmt_seat_data->get_result();
 
     if ($result_seat_data->num_rows > 0) {
+        
+        log_event("ADMIN_VIEW_SEATS_SUCCESS","Seat map visualized for Flight ID: " . $target_flight_id, $_SESSION['user_id']);
+        
         $seats_per_row = 6;
         $seat_counter = 0; 
         $row_index = 0;
@@ -128,7 +131,7 @@ if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) {
             if ($seat_counter % $seats_per_row === 0) {
                 $row_index++;
             }
-            log_event("ADMIN_VIEW_SEATS_SUCCESS","Seat map visualized for Flight ID: " . $target_flight_id, $_SESSION['user_id']);
+            
         }
     } else {
         $error_message = "Nessun posto trovato per il Volo ID $target_flight_id.";
