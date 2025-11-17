@@ -122,6 +122,7 @@ $conn->close();
 <html lang="en">
 <head>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 </head>
 <body>
   <header>
@@ -234,6 +235,9 @@ $conn->close();
     <?php endif; ?>
   </div>
   
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  
   <script>
     document.addEventListener('DOMContentLoaded', () => {
         const summaryCard = document.getElementById('booking-summary');
@@ -241,15 +245,15 @@ $conn->close();
 
         bookableSeats.forEach(button => {
             button.addEventListener('click', (event) => {
-                // 
+                // Rimuove la selezione dai posti precedentemente selezionati
                 document.querySelectorAll('.seat-btn.selected').forEach(btn => {
                     btn.classList.remove('selected');
                 });
                 
-                // 
+                // Aggiunge la selezione al posto corrente
                 event.currentTarget.classList.add('selected');
 
-                // 
+                // Popola il riepilogo
                 const flightId = event.currentTarget.dataset.flightId;
                 const seatNum = event.currentTarget.dataset.seatNum;
                 const seatClass = event.currentTarget.dataset.seatClass;
@@ -264,11 +268,39 @@ $conn->close();
                 document.getElementById('form-flight-id').value = flightId;
                 document.getElementById('form-seat-id').value = seatNum;
 
-                //
+                // Mostra il riepilogo
                 summaryCard.style.display = 'block';
                 summaryCard.scrollIntoView({ behavior: 'smooth' });
             });
         });
+        
+        const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'filter_locations.php';
+        
+        function setupDynamicAutocomplete(selector) {
+            $( selector ).autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: DYNAMIC_AUTOCOMPLETE_ENDPOINT,
+                        dataType: "json",
+                        data: {
+                            term: request.term
+                        },
+                        success: function(data) {
+                            response(data);
+                        },
+                        error: function() {
+                            response([]);
+                        }
+                    });
+                },
+                minLength: 2, 
+                delay: 300
+            });
+        }
+
+        setupDynamicAutocomplete("#departure");
+        setupDynamicAutocomplete("#arrival");
+        
     });
   </script>
 </body>

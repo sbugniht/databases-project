@@ -83,6 +83,7 @@ $conn->close();
   <title>SkyBook - Airline Reservation System</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 </head>
 <body>
 
@@ -195,6 +196,46 @@ $conn->close();
   <footer>
     <p>&copy; 2025 SkyBook — <a href="imprint.hmtl">Imprint</a></p>
   </footer>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  
+  <script>
+    $( function() {
+      // Nuovo endpoint per il filtro dinamico
+      const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'filter_locations.php';
+      
+      // Funzione che gestisce l'Autocomplete dinamicamente
+      function setupDynamicAutocomplete(selector) {
+          $( selector ).autocomplete({
+              
+              source: function(request, response) {
+                  
+                  $.ajax({
+                      url: DYNAMIC_AUTOCOMPLETE_ENDPOINT,
+                      dataType: "json",
+                      data: {
+                          
+                          term: request.term
+                      },
+                      success: function(data) {
+                          
+                          response(data); 
+                      },
+                      error: function() {
+                          response([]); 
+                      }
+                  });
+              },
+              minLength: 2, 
+              delay: 300   
+          });
+      }
 
+      
+      setupDynamicAutocomplete("#departure");
+      setupDynamicAutocomplete("#arrival");
+      
+    } );
+  </script>
 </body>
 </html>
