@@ -274,7 +274,7 @@ $conn->close();
             });
         });
         
-        const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'filter_locations.php';
+        const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'get_locations.php';
         
         function setupDynamicAutocomplete(selector) {
             $( selector ).autocomplete({

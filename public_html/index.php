@@ -97,7 +97,7 @@ $conn->close();
     <nav>
       <ul>
         <li><a href="index.php" class="active">Home</a></li>
-        <li><a href="#">Flights</a></li>
+        <li><a href="flight.php">Flights</a></li>
         <li><a href="login.php">Login</a></li>
         <li><a href="imprint.hmtl">Imprint</a></li>
       </ul>
@@ -201,10 +201,9 @@ $conn->close();
   
   <script>
     $( function() {
-      // Nuovo endpoint per il filtro dinamico
-      const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'filter_locations.php';
       
-      // Funzione che gestisce l'Autocomplete dinamicamente
+      const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'get_locations.php';
+      
       function setupDynamicAutocomplete(selector) {
           $( selector ).autocomplete({
               
