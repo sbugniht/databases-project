@@ -218,9 +218,14 @@ $conn->close();
                       },
                       success: function(data) {
                           
+                          if (data.length === 0 && request.term.length >= 2) {
+                             console.log("Autocomplete: 0 results for " + request.term + ". Check DB connectivity or search view data.");
+                          }
+                          
                           response(data); 
                       },
-                      error: function() {
+                      error: function(xhr, status, error) {
+                          console.error("Autocomplete AJAX Error:", status, error, xhr.responseText);
                           response([]); 
                       }
                   });

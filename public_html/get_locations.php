@@ -1,6 +1,5 @@
 <?php
 
-
 $servername = "127.0.0.1";
 $username = "gbrugnara";
 $password = "KeRjnLwqj+rTTG3E";
@@ -15,7 +14,6 @@ if ($conn->connect_error) {
     exit();
 }
 
-
 $search_term = trim($_GET['term'] ?? '');
 
 $locations = [];
@@ -24,7 +22,7 @@ $locations = [];
 if (!empty($search_term)) {
     $like_term = '%' . $search_term . '%';
 
-   
+    
     $sql = "
         (SELECT dep_city AS city, dep_iata AS iata FROM View_SearchFlights 
          WHERE UPPER(dep_city) LIKE UPPER(?) OR UPPER(dep_iata) LIKE UPPER(?))
@@ -42,28 +40,30 @@ if (!empty($search_term)) {
         exit();
     }
 
-   
     $stmt->bind_param("ssss", $like_term, $like_term, $like_term, $like_term);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    
     $unique_locations = [];
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            $formatted_location = $row['city'] . ' (' . $row['iata'] . ')';
             
-           
-            if (!empty($row['city']) && !empty($row['iata'])) {
-                 $unique_locations[$formatted_location] = true;
+            $city = trim($row['city']);
+            $iata = trim($row['iata']);
+            
+            
+            if (!empty($city) && !empty($iata)) {
+                 $unique_locations["$city ($iata)"] = true;
             }
             
-            if (!empty($row['city'])) {
-                $unique_locations[$row['city']] = true;
+            
+            if (!empty($city) && !is_numeric($city)) {
+                $unique_locations[$city] = true;
             }
             
-            if (!empty($row['iata'])) {
-                $unique_locations[$row['iata']] = true;
+            
+            if (!empty($iata) && strlen($iata) === 3) {
+                $unique_locations[$iata] = true;
             }
         }
     }
@@ -74,7 +74,6 @@ if (!empty($search_term)) {
 }
 
 $conn->close();
-
 
 header('Content-Type: application/json');
 echo json_encode($locations);
