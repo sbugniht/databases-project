@@ -71,6 +71,14 @@ $sql_flights = "
     FROM View_SearchFlights
     ORDER BY flight_id DESC;
 ";
+$existing_countries = [];
+$sql_countries = "SELECT country FROM Fee ORDER BY country ASC";
+$result_countries = $conn->query($sql_countries);
+if ($result_countries) {
+    while ($row = $result_countries->fetch_assoc()) {
+        $existing_countries[] = $row['country'];
+    }
+}
 $result_flights = $conn->query($sql_flights);
 if ($result_flights) {
     while ($row = $result_flights->fetch_assoc()) {
@@ -218,7 +226,7 @@ $conn->close();
                 <form method="get" action="admin.php" class="seat-selection-form">
                     <label for="select_flight">Flight ID:</label>
                     <select id="select_flight" name="view_flight_id" onchange="this.form.submit()" class="full-width-select">
-                        <option value="">Select FLight</option>
+                        <option value="">Select Flight</option>
                         <?php foreach ($flights as $f): ?>
                             <option value="<?php echo htmlspecialchars($f['flight_id']); ?>" 
                                     <?php echo (isset($_GET['view_flight_id']) && (int)$_GET['view_flight_id'] == (int)$f['flight_id']) ? 'selected' : ''; ?>>
@@ -403,8 +411,15 @@ $conn->close();
                     <label for="new_city">City:</label>
                     <input type="text" id="new_city" name="city" required>
                     
-                    <label for="new_country">Country (Must exist in Fee table):</label>
-                    <input type="text" id="new_country" name="country" required>
+                   <label for="new_country_input">Country (Select or Add New):</label>
+                   <input type="text" id="new_country_input" name="country" placeholder="Select or type new country" required>
+                   <div id="new-country-fields" style="display: none; border: 1px dashed #ccc; padding: 10px; margin-top: 10px;">
+                       <h4>New Fee/Country Data:</h4>
+                       <label for="dom_fee">Domestic Fee:</label>
+                       <input type="number" id="dom_fee" name="dom_fee" placeholder="e.g. 50" min="0">
+                       <label for="int_fee">International Fee:</label>
+                       <input type="number" id="int_fee" name="int_fee" placeholder="e.g. 100" min="0">
+                    </div>
 
                     <button type="submit" class="btn-primary">Add Airport</button>
                 </form>
@@ -433,6 +448,54 @@ $conn->close();
     </section>
     
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
+<script>
+$(function() {
+    const availableCountries = <?php echo json_encode($existing_countries); ?>;
+    const $countryInput = $('#new_country_input');
+    const $newCountryFields = $('#new-country-fields');
+    const $domFee = $('#dom_fee');
+    const $intFee = $('#int_fee');
+
+    function toggleFeeFields(isNewCountry) {
+        if (isNewCountry) {
+            $newCountryFields.show();
+            $domFee.prop('required', true);
+            $intFee.prop('required', true);
+        } else {
+            $newCountryFields.hide();
+            $domFee.prop('required', false).val('');
+            $intFee.prop('required', false).val('');
+        }
+    }
+
+    $countryInput.autocomplete({
+        source: availableCountries,
+        minLength: 0, 
+        select: function(event, ui) {
+            toggleFeeFields(false);
+        }
+    }).focus(function() {
+        if (!$(this).val()) {
+            $(this).autocomplete("search", "");
+        }
+    });
+
+    $countryInput.on('blur', function() {
+        const enteredCountry = $countryInput.val().trim();
+        const isNew = availableCountries.indexOf(enteredCountry) === -1;
+
+        if (enteredCountry) {
+            toggleFeeFields(isNew);
+        } else {
+            toggleFeeFields(false);
+        }
+    });
+
+    toggleFeeFields(false);
+});
+</script>
 </body>
 </html>

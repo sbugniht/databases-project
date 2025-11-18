@@ -25,45 +25,57 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
     try {
         if ($action === 'add_airport') {
-            // Aggiungi un nuovo aeroporto
             $airport_id = (int)$_POST['airport_id'];
             $iata = trim($_POST['iata']);
             $city = trim($_POST['city']);
             $country = trim($_POST['country']);
+            
+            $dom_fee = $_POST['dom_fee'] ?? null;
+            $int_fee = $_POST['int_fee'] ?? null;
 
             if (empty($iata) || empty($city) || empty($country)) {
-                throw new Exception("All fields (ID, IATA, City, Country) are required.");
+                throw new Exception("All primary fields (ID, IATA, City, Country) are required.");
             }
-            
-            // Verifica se il Paese esiste nella tabella Fee prima di procedere
+            $conn->begin_transaction();
+
             $check_fee = $conn->prepare("SELECT country FROM Fee WHERE country = ?");
             $check_fee->bind_param("s", $country);
             $check_fee->execute();
-            if ($check_fee->get_result()->num_rows === 0) {
-                 throw new Exception("Country '$country' must first be defined in the Fee table.");
+            $result_fee = $check_fee->get_result();
+
+            if ($result_fee->num_rows === 0) {
+                if ($dom_fee === null || $int_fee === null || !is_numeric($dom_fee) || !is_numeric($int_fee)) {
+                    throw new Exception("Country '$country' is new. Domestic Fee and International Fee must be provided.");
+                }
+                
+                $sql_insert_fee = "INSERT INTO Fee (country, dom_fee, int_fee) VALUES (?, ?, ?)";
+                $stmt_insert_fee = $conn->prepare($sql_insert_fee);
+                $stmt_insert_fee->bind_param("sii", $country, $dom_fee, $int_fee);
+                if (!$stmt_insert_fee->execute()) {
+                    throw new Exception("Error inserting new Fee data: " . $stmt_insert_fee->error);
+                }
+                $stmt_insert_fee->close();
             }
             $check_fee->close();
-            
 
             $sql_add = "INSERT INTO Airport (airport_id, iata, city, country) VALUES (?, ?, ?, ?)";
             $stmt_add = $conn->prepare($sql_add);
             $stmt_add->bind_param("isss", $airport_id, $iata, $city, $country);
             
             if (!$stmt_add->execute()) {
-                // Cattura l'errore SQL specifico (es. ID o IATA già esistente)
-                 throw new Exception("Error executing insert: " . $stmt_add->error);
+                 throw new Exception("Error executing airport insert: " . $stmt_add->error);
             }
-
-            $success = true;
-            $message = "Airport $iata ($city) successfully added.";
-            log_event("AIRPORT_ADD_SUCCESS", "Airport ID $airport_id added.", $admin_id);
             $stmt_add->close();
+            
+            $conn->commit();
+            $success = true;
+            $message = "Airport $iata ($city) successfully added. (New Fee data inserted if necessary).";
+            log_event("AIRPORT_ADD_SUCCESS", "Airport ID $airport_id added.", $admin_id);
+         
 
         } elseif ($action === 'remove_airport') {
-            // Rimuovi un aeroporto
             $airport_id = (int)$_POST['airport_id'];
 
-            // 1. Verifica se l'aeroporto è in uso come destinazione/partenza di un volo
             $check_usage = $conn->prepare("SELECT flight_id FROM Flights WHERE Dairport_id = ? OR Aairport_id = ? LIMIT 1");
             $check_usage->bind_param("ii", $airport_id, $airport_id);
             $check_usage->execute();
@@ -73,7 +85,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             }
             $check_usage->close();
 
-            // 2. Rimuovi l'aeroporto
             $sql_remove = "DELETE FROM Airport WHERE airport_id = ?";
             $stmt_remove = $conn->prepare($sql_remove);
             $stmt_remove->bind_param("i", $airport_id);
