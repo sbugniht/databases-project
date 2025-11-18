@@ -411,14 +411,30 @@ $conn->close();
                     <label for="new_city">City:</label>
                     <input type="text" id="new_city" name="city" required>
                     
-                   <label for="new_country_input">Country (Select or Add New):</label>
-                   <input type="text" id="new_country_input" name="country" placeholder="Select or type new country" required>
-                   <div id="new-country-fields" style="display: none; border: 1px dashed #ccc; padding: 10px; margin-top: 10px;">
-                       <h4>New Fee/Country Data:</h4>
-                       <label for="dom_fee">Domestic Fee:</label>
-                       <input type="number" id="dom_fee" name="dom_fee" placeholder="e.g. 50" min="0">
-                       <label for="int_fee">International Fee:</label>
-                       <input type="number" id="int_fee" name="int_fee" placeholder="e.g. 100" min="0">
+                    <label for="country_select">Country:</label>
+                    <select id="country_select" name="country" required>
+                        <option value="">Select Existing Country</option>
+                        
+                        <?php foreach ($existing_countries as $country_name): ?>
+                            <option value="<?php echo htmlspecialchars($country_name); ?>">
+                                <?php echo htmlspecialchars($country_name); ?>
+                            </option>
+                        <?php endforeach; ?>
+                        
+                        <option value="NEW_COUNTRY_ENTRY">--- Add New Country ---</option>
+                    </select>
+
+                    <div id="new-country-fields" style="display: none; border: 1px dashed #ccc; padding: 10px; margin-top: 10px;">
+                        <h4>New Country Fee Data:</h4>
+                        
+                        <label for="new_country_name">New Country Name:</label>
+                        <input type="text" id="new_country_name" name="new_country_name" placeholder="Enter new country name">
+
+                        <label for="dom_fee">Domestic Fee:</label>
+                        <input type="number" id="dom_fee" name="dom_fee" placeholder="e.g. 50" min="0">
+                        
+                        <label for="int_fee">International Fee:</label>
+                        <input type="number" id="int_fee" name="int_fee" placeholder="e.g. 100" min="0">
                     </div>
 
                     <button type="submit" class="btn-primary">Add Airport</button>
@@ -453,48 +469,39 @@ $conn->close();
 
 <script>
 $(function() {
-    const availableCountries = <?php echo json_encode($existing_countries); ?>;
-    const $countryInput = $('#new_country_input');
+    const $countrySelect = $('#country_select');
     const $newCountryFields = $('#new-country-fields');
+    const $newCountryName = $('#new_country_name');
     const $domFee = $('#dom_fee');
     const $intFee = $('#int_fee');
 
-    function toggleFeeFields(isNewCountry) {
-        if (isNewCountry) {
-            $newCountryFields.show();
+    // Function to toggle visibility and required status of Fee fields
+    function toggleNewCountryFields(show) {
+        if (show) {
+            $newCountryFields.slideDown();
+            $newCountryName.prop('required', true);
             $domFee.prop('required', true);
             $intFee.prop('required', true);
         } else {
-            $newCountryFields.hide();
+            $newCountryFields.slideUp();
+            $newCountryName.prop('required', false).val('');
             $domFee.prop('required', false).val('');
             $intFee.prop('required', false).val('');
         }
     }
 
-    $countryInput.autocomplete({
-        source: availableCountries,
-        minLength: 0, 
-        select: function(event, ui) {
-            toggleFeeFields(false);
-        }
-    }).focus(function() {
-        if (!$(this).val()) {
-            $(this).autocomplete("search", "");
-        }
-    });
-
-    $countryInput.on('blur', function() {
-        const enteredCountry = $countryInput.val().trim();
-        const isNew = availableCountries.indexOf(enteredCountry) === -1;
-
-        if (enteredCountry) {
-            toggleFeeFields(isNew);
+    // Event listener for the Country dropdown change
+    $countrySelect.on('change', function() {
+        if ($(this).val() === 'NEW_COUNTRY_ENTRY') {
+            toggleNewCountryFields(true);
+            $(this).removeAttr('name');
+            $newCountryName.attr('name', 'country'); 
         } else {
-            toggleFeeFields(false);
+            toggleNewCountryFields(false);
+            $(this).attr('name', 'country');
+            $newCountryName.removeAttr('name');
         }
-    });
-
-    toggleFeeFields(false);
+    }).trigger('change'); 
 });
 </script>
 </body>
