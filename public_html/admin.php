@@ -176,21 +176,40 @@ $conn->close();
         <h2>Existing Planes & Inventory</h2>
         <div class="plane-inventory-container">
             
-            <div class="plane-list-card">
-                <h3>Current Plane IDs</h3>
-                <?php if (!empty($planes)): ?>
-                    <ul>
-                        <?php foreach ($planes as $plane): ?>
-                            <li>
-                                <strong>ID <?php echo htmlspecialchars($plane['plane_id']); ?>:</strong> 
-                                <?php echo htmlspecialchars($plane['type_status']); ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else: ?>
-                    <p>No planes found.</p>
-                <?php endif; ?>
-            </div>
+            <div class="plane-list-card" style="flex-basis: 350px;">
+        <h3>Current Plane IDs</h3>
+        <?php if (!empty($planes)): ?>
+            <ul>
+                <?php foreach ($planes as $plane): ?>
+                    <li>
+                        <strong>ID <?php echo htmlspecialchars($plane['plane_id']); ?>:</strong> 
+                        <?php echo htmlspecialchars($plane['type_status']); ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>No planes found.</p>
+        <?php endif; ?>
+    </div>
+    
+    <div class="plane-list-card" style="flex-basis: 350px;">
+        <h3>Existing Airport Locations</h3>
+        <div class="scrollable-table-container" style="max-height: 250px;">
+            <?php if (!empty($airports)): ?>
+                <ul>
+                    <?php foreach ($airports as $a): ?>
+                        <li>
+                            <strong>ID <?php echo htmlspecialchars($a['airport_id']); ?>:</strong> 
+                            <?php echo htmlspecialchars($a['city']) . ' (' . htmlspecialchars($a['iata']) . ') - ' . htmlspecialchars($a['country']); ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <p>No airports found.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+            
             
             <div class="plane-seats-card">
                 <h3>Seat Visualizer (Flight: <?php echo isset($target_flight_id) ? $target_flight_id : 'Seleziona'; ?>)</h3>
@@ -365,8 +384,54 @@ $conn->close();
                 </form>
             </div>
         </div>
-        
+
+        <hr>
+        <h2>Manage Airports & Locations</h2>
+        <div class="flight-management-grid">
+            
+            <div class="form-card">
+                <h3>Add New Airport Location</h3>
+                <form method="post" action="manage_airports.php" class="flight-form">
+                    <input type="hidden" name="action" value="add_airport">
+                    
+                    <label for="new_airport_id">Airport ID (New):</label>
+                    <input type="number" id="new_airport_id" name="airport_id" required>
+
+                    <label for="new_iata">IATA Code (3 letters):</label>
+                    <input type="text" id="new_iata" name="iata" maxlength="3" required style="text-transform:uppercase;">
+
+                    <label for="new_city">City:</label>
+                    <input type="text" id="new_city" name="city" required>
+                    
+                    <label for="new_country">Country (Must exist in Fee table):</label>
+                    <input type="text" id="new_country" name="country" required>
+
+                    <button type="submit" class="btn-primary">Add Airport</button>
+                </form>
+            </div>
+
+            <div class="form-card">
+                <h3>Remove Existing Airport</h3>
+                <form method="post" action="manage_airports.php" class="flight-form">
+                    <input type="hidden" name="action" value="remove_airport">
+                    
+                    <label for="remove_airport_id">Airport to Remove:</label>
+                    <select id="remove_airport_id" name="airport_id" required class="full-width-select">
+                        <option value="">Select Airport ID (City/IATA)</option>
+                        <?php foreach ($airports as $a): ?>
+                            <option value="<?php echo htmlspecialchars($a['airport_id']); ?>">
+                                ID <?php echo htmlspecialchars($a['airport_id']) . ': ' . htmlspecialchars($a['city']) . ' (' . htmlspecialchars($a['iata']) . ')'; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <button type="submit" class="btn-secondary" style="background-color: var(--error-color);">Remove Airport</button>
+                    <p style="font-size: 0.9em; color: var(--error-color); margin-top: 10px;">Warning: Cannot remove airports linked to existing flights.</p>
+                </form>
+            </div>
+        </div>
     </section>
+    
 </div>
 
 </body>

@@ -231,7 +231,31 @@ $conn->close();
                   });
               },
               minLength: 2, 
-              delay: 300   
+              delay: 300,
+              select: function(event, ui) {
+                  const selectedValue = ui.item.value;
+                  
+                  const match = selectedValue.match(/\(([^)]+)\)$/);
+                  
+                  let finalValue = selectedValue;
+                  
+                  if (match && match[1]) {
+                      
+                      const iata = match[1];
+                      const city = selectedValue.substring(0, selectedValue.indexOf(' (')).trim();
+
+                      if (iata.length < city.length) {
+                         finalValue = iata;
+                      } else {
+                         finalValue = city;
+                      }
+                  } 
+                  
+                  $(selector).val(finalValue);
+                  
+                  event.preventDefault(); 
+              }
+          
           });
       }
 
