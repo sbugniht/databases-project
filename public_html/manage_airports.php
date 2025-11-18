@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     try {
         if ($action === 'add_airport') {
             $airport_id = (int)$_POST['airport_id'];
-            $iata = trim($_POST['iata']);
+            $iata = strtoupper(trim($_POST['iata']));
             $city = trim($_POST['city']);
             $country = trim($_POST['country']);
             
