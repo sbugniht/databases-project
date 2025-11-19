@@ -294,14 +294,30 @@ $conn->close();
                     });
                 },
                 minLength: 2, 
-                delay: 300
+                delay: 300,
+                select: function(event, ui) {
+                    const selectedValue = ui.item.value; 
+                    
+                    const match = selectedValue.match(/\(([^)]+)\)$/);
+                    
+                    let finalValue = selectedValue;
+                    
+                    if (match && match[1]) {
+                        const iata = match[1];
+                        const city = selectedValue.substring(0, selectedValue.indexOf(' (')).trim();
+
+                        finalValue = iata.length <= city.length ? iata : city;
+                    } 
+                    
+                    $(selector).val(finalValue);
+                    
+                    event.preventDefault(); 
+                }
             });
         }
 
         setupDynamicAutocomplete("#departure");
         setupDynamicAutocomplete("#arrival");
-        
-    });
   </script>
 </body>
 </html>
