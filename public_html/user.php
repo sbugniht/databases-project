@@ -318,6 +318,7 @@ $conn->close();
 
         setupDynamicAutocomplete("#departure");
         setupDynamicAutocomplete("#arrival");
+    });
   </script>
 </body>
 </html>
