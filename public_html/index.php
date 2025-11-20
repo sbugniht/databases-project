@@ -2,6 +2,7 @@
 <?php
 
 include_once 'logTracker.php';
+include_once 'simulation_manager.php';
 
 $servername = "127.0.0.1";
 $username = "gbrugnara";
@@ -17,6 +18,8 @@ if ($conn->connect_error) {
   die($error_message);
 }
 
+run_simulation($conn);
+
 $message = "";
 $search_results = [];
 $departure = '';
@@ -26,9 +29,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     $departure = trim($_POST['departure'] ?? '');
     $arrival = trim($_POST['arrival'] ?? '');
+    $date = $_POST['date'] ?? '';
     
-    
-    if (!empty($departure) && !empty($arrival)) {
+    if (!empty($departure) && !empty($arrival) && !empty($date)) {
 
         
         $sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status 
@@ -46,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         
-        $stmt->bind_param("ssss", $departure, $departure, $arrival, $arrival);
+        $stmt->bind_param("sssss", $departure, $departure, $arrival, $arrival,$date);
 
         
         $stmt->execute();

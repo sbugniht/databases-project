@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
  
         $sql = "
             SELECT 
-                VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, 
+                VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, VSF.flight_date, VSF.dep_time, VSF.duration_minutes,
                 T.seat_id, SA.class, CP.PRICE,
                 B.booking_id IS NOT NULL AS is_reserved,
                 VSF.plane_id
@@ -75,12 +75,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
 
                     
                     if (!isset($flights_for_display[$flight_id])) {
+                        $dep_datetime = new DateTime($row['flight_date'] . ' ' . $row['dep_time']);
+                        $arr_datetime = clone $dep_datetime;
+                        $arr_datetime->modify('+' . $row['duration_minutes'] . ' minutes');
+                        
                         $flights_for_display[$flight_id] = [
                             'info' => [
                                 'flight_id' => $row['flight_id'],
-                                'route' => $row['dep_city'] . '---> ' . $row['arr_city'],
+                                'route' => $row['dep_city'] . ' (' . $row['dep_iata'] . ') -> ' . $row['arr_city'] . ' (' . $row['arr_iata'] . ')',
                                 'dep_iata' => $row['dep_iata'],
                                 'arr_iata' => $row['arr_iata'],
+                                'date_str' => $dep_datetime->format('D, d M Y'),
+                                'time_str' => $dep_datetime->format('H:i') . ' - ' . $arr_datetime->format('H:i'),
+                                'duration_str' => floor($row['duration_minutes']/60) . 'h ' . ($row['duration_minutes']%60) . 'm'
                             ],
                             'seats' => [],
                         ];
@@ -192,8 +199,18 @@ $conn->close();
           $simulated_seats = $flight_data['seats'];
       ?>
       <div class="flight-map-container">
-          <h3>Volo ID <?php echo htmlspecialchars($info['flight_id']) . ': ' . $info['dep_iata'] . ' &rarr; ' . $info['arr_iata']; ?></h3>
           
+          <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; text-align: left;">
+              <h3 style="margin-bottom: 5px; border: none; color: var(--primary-color);">
+                  Flight <?php echo htmlspecialchars($info['flight_id']); ?>: 
+                  <?php echo htmlspecialchars($info['dep_iata']); ?> &rarr; <?php echo htmlspecialchars($info['arr_iata']); ?>
+              </h3>
+              <div style="color: #555; font-size: 0.95em;">
+                  <strong>Date:</strong> <?php echo htmlspecialchars($info['date_str']); ?> <span style="margin: 0 10px;">|</span> 
+                  <strong>Time:</strong> <?php echo htmlspecialchars($info['time_str']); ?> <span style="margin: 0 10px;">|</span> 
+                  <strong>Duration:</strong> <?php echo htmlspecialchars($info['duration_str']); ?>
+              </div>
+          </div>
           <div class="airplane-layout">
               <div class="fuselage-marker">Legend: Reserved (Red) | Available (Green)</div>
               <div class="aisle-marker">Corridor</div>
@@ -206,10 +223,7 @@ $conn->close();
                           $seat_in_row_counter = 0;
                           foreach ($row as $seat): 
                               $seat_in_row_counter++;
-                              // 
                               $gap_class = ($seat_in_row_counter === 4) ? 'has-aisle' : '';
-                              
-                              // 
                               $is_bookable = $seat['status'] === 'available' ? ' bookable' : '';
                           ?>
                               <button 
@@ -245,15 +259,12 @@ $conn->close();
 
         bookableSeats.forEach(button => {
             button.addEventListener('click', (event) => {
-                // Rimuove la selezione dai posti precedentemente selezionati
                 document.querySelectorAll('.seat-btn.selected').forEach(btn => {
                     btn.classList.remove('selected');
                 });
                 
-                // Aggiunge la selezione al posto corrente
                 event.currentTarget.classList.add('selected');
 
-                // Popola il riepilogo
                 const flightId = event.currentTarget.dataset.flightId;
                 const seatNum = event.currentTarget.dataset.seatNum;
                 const seatClass = event.currentTarget.dataset.seatClass;
@@ -268,7 +279,6 @@ $conn->close();
                 document.getElementById('form-flight-id').value = flightId;
                 document.getElementById('form-seat-id').value = seatNum;
 
-                // Mostra il riepilogo
                 summaryCard.style.display = 'block';
                 summaryCard.scrollIntoView({ behavior: 'smooth' });
             });

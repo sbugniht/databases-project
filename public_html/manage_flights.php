@@ -28,19 +28,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     try {
         if ($action === 'add') {
            
+            $flight_id = (int)$_POST['flight_id'];
             $d_airport_id = (int)$_POST['d_airport_id'];
             $a_airport_id = (int)$_POST['a_airport_id'];
             $plane_id = (int)$_POST['plane_id'];
             $status = $_POST['status'];
             $flight_type = $_POST['flight_type'];
             
+            $flight_date = $_POST['flight_date']; // Format YYYY-MM-DD
+            $dep_time = $_POST['dep_time'];       // Format HH:MM
             
+            $duration = 120; // Default
+            if ($flight_type === 'Dom_flight') {
+                $duration = rand(45, 180);
+            } else {
+                $duration = rand(120, 720);
+            }
+
             $conn->begin_transaction(); 
 
-            
-            $sql_flight = "INSERT INTO Flights (flight_id, Dairport_id, Aairport_id, plane_id, plane_status) VALUES (?, ?, ?, ?, ?)";
+            $sql_flight = "INSERT INTO Flights (flight_id, Dairport_id, Aairport_id, plane_id, plane_status, flight_date, dep_time, duration_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt_flight = $conn->prepare($sql_flight);
-            $stmt_flight->bind_param("iiiis", $flight_id, $d_airport_id, $a_airport_id, $plane_id, $status);
+            $stmt_flight->bind_param("iiiisssi", $flight_id, $d_airport_id, $a_airport_id, $plane_id, $status, $flight_date, $dep_time, $duration);
             $stmt_flight->execute();
 
             
@@ -48,13 +57,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $stmt_type = $conn->prepare($sql_type);
             $stmt_type->bind_param("i", $flight_id);
             $stmt_type->execute();
-
+            
             
             $conn->commit();
             $success = true;
-            $message = "Flight $flight_id successfully added as $flight_type.";
-            log_event("FLIGHT_ADD_SUCCESS", "Flight $flight_id successfully added as $flight_type.", $_SESSION['user_id']);
-        } elseif ($action === 'remove') {
+            $message = "Flight $flight_id added successfully ($flight_type). Date: $flight_date, Time: $dep_time, Duration: {$duration}m.";
+            log_event("FLIGHT_ADD_SUCCESS", $message, $_SESSION['user_id']);
+        }elseif ($action === 'remove') {
             
             
             $conn->begin_transaction(); 

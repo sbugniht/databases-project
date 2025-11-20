@@ -14,7 +14,8 @@ if ($conn->connect_error) {
 $filter_query = trim($_GET['filter'] ?? '');
 $search_term = '%' . $filter_query . '%';
 
-$sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status 
+// Selezioniamo le nuove colonne dalla View aggiornata
+$sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status, flight_date, dep_time, duration_minutes 
         FROM View_SearchFlights";
 
 if (!empty($filter_query)) {
@@ -24,7 +25,7 @@ if (!empty($filter_query)) {
             )";
 }
 
-$sql .= " ORDER BY flight_id DESC"; 
+$sql .= " ORDER BY flight_date ASC, dep_time ASC"; // Ordina per data e orario
 
 $flights = [];
 $stmt = $conn->prepare($sql);
@@ -44,6 +45,22 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
+        // --- Calcolo dell'Arrivo ---
+        $departure_string = $row['flight_date'] . ' ' . $row['dep_time'];
+        $dep_datetime = new DateTime($departure_string);
+        
+        $arr_datetime = clone $dep_datetime;
+        $arr_datetime->modify('+' . $row['duration_minutes'] . ' minutes');
+        
+        // Formattazione per il Frontend
+        $row['formatted_dep'] = $dep_datetime->format('d M Y, H:i'); // es: 20 Nov 2025, 14:30
+        $row['formatted_arr'] = $arr_datetime->format('d M Y, H:i');
+        
+        // Aggiungiamo la durata formattata (es: 2h 15m)
+        $hours = floor($row['duration_minutes'] / 60);
+        $minutes = $row['duration_minutes'] % 60;
+        $row['formatted_duration'] = "{$hours}h {$minutes}m";
+        
         $flights[] = $row;
     }
 }

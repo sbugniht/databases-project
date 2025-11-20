@@ -12,6 +12,7 @@ $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
+## system that manages flights automatically based on time user = 1000 pwd= system
 
 
 
@@ -67,9 +68,12 @@ $sql_flights = "
         arr_iata, 
         arr_city, 
         plane_id, 
-        plane_status
+        plane_status,
+        flight_date,
+        dep_time,
+        duration_minutes
     FROM View_SearchFlights
-    ORDER BY flight_id DESC;
+    ORDER BY flight_date DESC, dep_time ASC;
 ";
 $existing_countries = [];
 $sql_countries = "SELECT country FROM Fee ORDER BY country ASC";
@@ -283,19 +287,21 @@ $conn->close();
                             <thead>
                                 <tr>
                                     <th>Flight ID</th>
-                                    <th>Departure (IATA/City)</th>
-                                    <th>Arrival (IATA/City)</th>
-                                    <th>Airplane ID</th>
-                                    <th>Status</th>
+                                    <th>Date & Time</th> <th>Route</th>       <th>Dur.</th>        <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($flights as $flight): ?>
                                     <tr>
-                                        <td><strong><?php echo htmlspecialchars($flight['flight_id']); ?></strong></td>
-                                        <td><?php echo htmlspecialchars($flight['dep_iata']) . ' (' . htmlspecialchars($flight['dep_city']) . ')'; ?></td>
-                                        <td><?php echo htmlspecialchars($flight['arr_iata']) . ' (' . htmlspecialchars($flight['arr_city']) . ')'; ?></td>
-                                        <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
+                                        <td><strong><?php echo htmlspecialchars($flight['flight_id']); ?></strong><br><small>Plane: <?php echo $flight['plane_id']; ?></small></td>
+                                        <td>
+                                            <?php echo htmlspecialchars($flight['flight_date']); ?><br>
+                                            <?php echo htmlspecialchars(substr($flight['dep_time'], 0, 5)); ?>
+                                        </td>
+                                        <td>
+                                            <?php echo htmlspecialchars($flight['dep_iata']); ?> &rarr; <?php echo htmlspecialchars($flight['arr_iata']); ?>
+                                        </td>
+                                        <td><?php echo floor($flight['duration_minutes']/60).'h '.($flight['duration_minutes']%60).'m'; ?></td>
                                         <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -368,6 +374,15 @@ $conn->close();
                         <option value="Dom_flight">Domestic</option>
                         <option value="Int_flight">International</option>
                     </select>
+                    <label for="new_flight_date">Departure Date:</label>
+                    <input type="date" id="new_flight_date" name="flight_date" required>
+
+                    <label for="new_dep_time">Departure Time:</label>
+                    <input type="time" id="new_dep_time" name="dep_time" required>
+
+                    <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
+                        * Duration will be automatically generated based on Flight Type.
+                    </p>
 
                     <button type="submit" class="btn-primary">Add Flight</button>
                 </form>
