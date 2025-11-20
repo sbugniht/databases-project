@@ -38,7 +38,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM View_SearchFlights
                 WHERE 
             (UPPER(dep_city) = UPPER(?) OR UPPER(dep_iata) = UPPER(?))
-            AND (UPPER(arr_city) = UPPER(?) OR UPPER(arr_iata) = UPPER(?))";
+            AND (UPPER(arr_city) = UPPER(?) OR UPPER(arr_iata) = UPPER(?))
+            AND flight_date = ?";
 
         
         $stmt = $conn->prepare($sql);
