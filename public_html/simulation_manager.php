@@ -146,6 +146,8 @@ function simulate_random_bookings($conn) {
     // Get all future flights
     $res_f = $conn->query("SELECT flight_id FROM Flights WHERE flight_date >= CURDATE()");
     
+    $bot_user_id = SIM_BOT_USER_ID; 
+    
     while ($f = $res_f->fetch_assoc()) {
         // Roll dice based on percentage config
         if (rand(0, 100) < SIM_BOOKING_CHANCE) {
@@ -167,8 +169,10 @@ function simulate_random_bookings($conn) {
                 shuffle($free_seats); // Randomize position
                 
                 $stmt_book = $conn->prepare("INSERT INTO Bookings (user_id, flight_id, seat_id) VALUES (?, ?, ?)");
+                
                 for ($i = 0; $i < $to_book; $i++) {
-                    $stmt_book->bind_param("iii", SIM_BOT_USER_ID, $fid, $free_seats[$i]);
+                    $current_seat = $free_seats[$i];
+                    $stmt_book->bind_param("iii", $bot_user_id, $fid, $current_seat);
                     $stmt_book->execute();
                 }
                 $stmt_book->close();
