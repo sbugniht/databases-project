@@ -112,8 +112,15 @@ function run_simulation($conn) {
     simulate_random_bookings($conn);
 
     // Log success
-    file_put_contents($last_run_file, $today);
+    if (!file_exists($last_run_file)) {
+        @touch($last_run_file);
+        @chmod($last_run_file, 0666);
+    } elseif (!is_writable($last_run_file)) {
+        @chmod($last_run_file, 0666);
+    }
 }
+    // Scrivi il file silenziando errori
+    @file_put_contents($last_run_file, $today);
 
 function populate_tickets($conn, $flight_id, $plane_id) {
     $res = $conn->query("SELECT seats FROM Commercial WHERE plane_id = $plane_id");
