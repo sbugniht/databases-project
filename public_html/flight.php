@@ -1,7 +1,5 @@
 <?php
 include_once 'logTracker.php'; 
-$message = ""; 
-// Determine if a search query exists from the URL (for initial page load/refresh)
 $initial_filter = trim($_GET['search'] ?? '');
 ?>
 
@@ -17,48 +15,26 @@ $initial_filter = trim($_GET['search'] ?? '');
   <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
   
   <style>
-    /* Custom styling for the filter display box */
-    .filter-display {
+    .filter-controls {
         display: flex;
-        align-items: center;
-        background-color: #fff8e1; /* var(--feature-bg) */
-        border: 1px solid #ffe082;
-        padding: 8px 15px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9em;
-        margin-left: 20px;
-        white-space: nowrap;
-    }
-    .filter-display button {
-        background: none;
-        border: none;
-        color: #dc3545; /* var(--error-color) */
-        font-weight: 700;
-        cursor: pointer;
-        margin-left: 8px;
-        padding: 0;
-        line-height: 1;
-        font-size: 1.2em;
-        transition: color 0.2s;
-    }
-    .search-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .search-card .form-group {
-        flex-grow: 1;
-        max-width: none;
-        min-width: 250px;
-    }
-    .filter-container {
-        display: flex;
-        align-items: flex-end;
-        flex-grow: 1;
+        gap: 15px;
+        align-items: flex-end; 
+        flex-wrap: wrap;
+        width: 100%;
     }
     
-    /* Status Badges CSS */
+    .special-msg {
+        text-align: center;
+        padding: 40px;
+        font-size: 1.5em;
+        color: #666;
+        font-style: italic;
+        background-color: #f9f9f9;
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
     .status-badge {
         padding: 4px 8px;
         border-radius: 4px;
@@ -67,6 +43,7 @@ $initial_filter = trim($_GET['search'] ?? '');
         color: #fff;
         background-color: #6c757d; /* Default grey */
         text-transform: capitalize;
+        white-space: nowrap;
     }
     .status-badge.on-time {
         background-color: #28a745; /* Green */
@@ -75,7 +52,7 @@ $initial_filter = trim($_GET['search'] ?? '');
         background-color: #dc3545; /* Red */
     }
     .status-badge.cancelled {
-        background-color: #343a40; /* Dark */
+        background-color: #343a40; /* Dark/Black */
     }
   </style>
 </head>
@@ -99,21 +76,27 @@ $initial_filter = trim($_GET['search'] ?? '');
 
   <div class="results admin-management">
     <h1>✈️ All Available Flights</h1>
-    <p>View all flights or search by a single Airport (IATA or City) to filter the list.</p>
+    <p>View all flights or search by location and date.</p>
 
     <div class="search-card user-search">
-        <div class="search-row">
-            <div class="filter-container">
-                <div class="form-group" style="flex-grow: 1;">
-                    <label for="filter-search">Airport/City Filter</label>
-                    <input type="text" id="filter-search" name="search" placeholder="Start typing: London, BER, Rome..." 
-                           value="<?php echo htmlspecialchars($initial_filter); ?>">
-                </div>
-                
-                <div id="current-filter-box" class="filter-display" style="display: none;">
-                    <span>Filtering by: <strong id="current-filter-term"></strong></span>
-                    <button id="clear-filter-btn" title="Clear Filter">&times;</button>
-                </div>
+        <div class="filter-controls">
+            
+            <div class="form-group" style="flex: 2; min-width: 250px;">
+                <label for="filter-search">Airport/City Filter</label>
+                <input type="text" id="filter-search" name="search" 
+                       placeholder="Start typing: London, BER, Rome..." 
+                       value="<?php echo htmlspecialchars($initial_filter); ?>">
+            </div>
+            
+            <div class="form-group" style="flex: 1; min-width: 150px;">
+                <label for="filter-date">Date</label>
+                <input type="date" id="filter-date" name="date">
+            </div>
+
+            <div class="form-group" style="flex: 0 0 auto;">
+                <button id="clear-all-btn" class="btn-primary" style="background-color: var(--secondary-color); height: 42px; margin-top: 0;">
+                    Clear Filters
+                </button>
             </div>
         </div>
         
@@ -122,6 +105,9 @@ $initial_filter = trim($_GET['search'] ?? '');
     
     <div class="results" style="margin: 30px auto 0; padding: 0; box-shadow: none;">
       <h2 id="results-header">Flight List</h2>
+      
+      <div id="special-message-container"></div> 
+      
       <table id="flights-table">
         <thead>
           <tr>
@@ -130,7 +116,6 @@ $initial_filter = trim($_GET['search'] ?? '');
             <th>Departure Time</th>
             <th>Arrival Time</th>
             <th>Duration</th>
-            
             <th>Status</th>
           </tr>
         </thead>
@@ -158,29 +143,35 @@ $initial_filter = trim($_GET['search'] ?? '');
   <script>
     // Endpoints
     const FLIGHTS_ENDPOINT = 'get_all_flights.php';
-    const AUTOCOMPLETE_ENDPOINT = 'get_locations.php'; // Ensure this matches your actual file name
+    const AUTOCOMPLETE_ENDPOINT = 'get_locations.php';
 
     const $tableBody = $('#flights-table-body');
+    const $table = $('#flights-table');
     const $statusMessage = $('#status-message');
-    const $filterInput = $('#filter-search');
-    const $filterBox = $('#current-filter-box');
-    const $filterTerm = $('#current-filter-term');
+    const $specialContainer = $('#special-message-container');
+    const $textInput = $('#filter-search');
+    const $dateInput = $('#filter-date');
     const $resultsHeader = $('#results-header');
 
-    /**
-     * Fetches flight data based on a filter and updates the table.
-     * @param {string} filterQuery - The search term (City or IATA) to filter flights.
-     */
-    function fetchAndRenderFlights(filterQuery = '') {
-        $tableBody.html('<tr><td colspan="6" style="text-align: center;">Searching for flights...</td></tr>');
-        $statusMessage.removeClass('success error').text('Searching...');
+   
+    function fetchFlights() {
+        const textVal = $textInput.val();
+        const dateVal = $dateInput.val();
 
-        const queryParam = filterQuery ? '?filter=' + encodeURIComponent(filterQuery) : '';
-        
+        $tableBody.html('<tr><td colspan="6" style="text-align: center;">Searching...</td></tr>');
+        $statusMessage.text('').removeClass('success error');
+        $specialContainer.html(''); 
+        $table.show();
+
+
         $.ajax({
-            url: FLIGHTS_ENDPOINT + queryParam,
+            url: FLIGHTS_ENDPOINT,
             dataType: 'json',
             method: 'GET',
+            data: {
+                filter: textVal,
+                date: dateVal
+            },
             success: function(data) {
                 if (data.error) {
                     $statusMessage.addClass('error').text('Error fetching data: ' + data.error);
@@ -188,10 +179,16 @@ $initial_filter = trim($_GET['search'] ?? '');
                     return;
                 }
 
+                if (data.special_message) {
+                    $table.hide(); 
+                    $specialContainer.html(`<div class="special-msg">${data.special_message}</div>`);
+                    $statusMessage.text(''); 
+                    return;
+                }
+
                 if (data && data.length > 0) {
                     let html = '';
                     data.forEach(flight => {
-                        // Clean status for CSS class (e.g., "On Time" -> "on-time")
                         let statusClass = flight.plane_status ? flight.plane_status.toLowerCase().replace(/\s+/g, '-') : 'unknown';
 
                         html += `
@@ -223,34 +220,26 @@ $initial_filter = trim($_GET['search'] ?? '');
                         `;
                     });
                     $tableBody.html(html);
-                    $statusMessage.addClass('success').text(`${data.length} flights found.`);
                     
-                    if (filterQuery) {
-                        $resultsHeader.text(`Flights matching "${filterQuery}"`);
-                        $filterTerm.text(filterQuery);
-                        $filterBox.show();
-                    } else {
-                        $resultsHeader.text(`All Available Flights`);
-                        $filterBox.hide();
-                    }
+                    let msg = `${data.length} flights found`;
+                    if (dateVal) msg += ` for ${dateVal}`;
+                    $statusMessage.addClass('success').text(msg);
                     
                 } else {
                     $tableBody.html('<tr><td colspan="6" style="text-align: center;">No flights found matching your criteria.</td></tr>');
                     $statusMessage.addClass('error').text(`No flights found.`);
-                    $resultsHeader.text(`No Flights Found`);
-                    $filterBox.hide();
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", status, error);
                 $statusMessage.addClass('error').text('Failed to connect to the flight data server.');
-                $tableBody.html('<tr><td colspan="6" style="text-align: center;">Failed to load data. Please check server connection.</td></tr>');
+                $tableBody.html('<tr><td colspan="6" style="text-align: center;">Failed to load data.</td></tr>');
             }
         });
     }
 
-    // Function to handle Autocomplete setup
     function setupDynamicAutocomplete() {
-        $filterInput.autocomplete({
+        $textInput.autocomplete({
             source: function(request, response) {
                 $.ajax({
                     url: AUTOCOMPLETE_ENDPOINT,
@@ -274,15 +263,13 @@ $initial_filter = trim($_GET['search'] ?? '');
                 let finalValue = selectedValue;
                 
                 if (match && match[1]) {
-                    // Prefer IATA
                     const iata = match[1];
                     const city = selectedValue.substring(0, selectedValue.indexOf(' (')).trim();
                     finalValue = iata.length <= city.length ? iata : city;
                 } 
                 
-                // Set input and trigger search
-                $filterInput.val(finalValue);
-                fetchAndRenderFlights(finalValue);
+                $textInput.val(finalValue);
+                fetchFlights(); 
                 event.preventDefault(); 
             }
         });
@@ -291,19 +278,23 @@ $initial_filter = trim($_GET['search'] ?? '');
     $( function() {
         setupDynamicAutocomplete();
         
-        const initialFilter = $filterInput.val();
-        fetchAndRenderFlights(initialFilter);
+        fetchFlights();
 
-        $filterInput.on('keypress', function(e) {
-            if (e.which === 13) { // Enter key
+        $textInput.on('keypress', function(e) {
+            if (e.which === 13) { 
                 e.preventDefault(); 
-                fetchAndRenderFlights($(this).val());
+                fetchFlights();
             }
         });
         
-        $('#clear-filter-btn').on('click', function() {
-            $filterInput.val('');
-            fetchAndRenderFlights('');
+        $dateInput.on('change', function() {
+            fetchFlights();
+        });
+        
+        $('#clear-all-btn').on('click', function() {
+            $textInput.val('');
+            $dateInput.val('');
+            fetchFlights();
         });
     } );
   </script>

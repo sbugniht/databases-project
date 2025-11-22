@@ -22,6 +22,9 @@ const SIM_BOOKING_CHANCE    = 30;   // % chance that a flight gets new bookings 
 const SIM_MAX_SEATS_BOOK    = 6;    // Max seats to book in a single batch
 const SIM_BOT_USER_ID       = 1000; // The User ID for automated bookings
 
+// Delay Simulation Settings, a flight can only be delayed or cancelled on the current day
+const SIM_DELAY_CHANCE      = 10;   // % chance that a flight is delayed
+const SIM_CANCELLATION_CHANCE = 2; // % chance that a flight is cancelled
 // ==========================================
 
 function run_simulation($conn) {
@@ -111,6 +114,8 @@ function run_simulation($conn) {
     // --- 3. BOOKING: Simulate random seats taken ---
     simulate_random_bookings($conn);
 
+    // --- 4. FLIGHT STATUS UPDATES: Simulate delays and cancellations ---
+    random_delay($conn);
     // Log success
     if (!file_exists($last_run_file)) {
         @touch($last_run_file);
@@ -118,8 +123,8 @@ function run_simulation($conn) {
     } elseif (!is_writable($last_run_file)) {
         @chmod($last_run_file, 0666);
     }
+    
 }
-    // Scrivi il file silenziando errori
     @file_put_contents($last_run_file, $today);
 
 function populate_tickets($conn, $flight_id, $plane_id) {
@@ -186,5 +191,40 @@ function simulate_random_bookings($conn) {
             }
         }
     }
+}
+
+function random_delay($conn){
+    $sql_select = "SELECT flight_id, dep_time, flight_date FROM Flights 
+                   WHERE flight_date = CURDATE() AND plane_status = 'On Time'";
+    $res_f = $conn->query($sql_select);
+    
+    $stmt_cancel = $conn->prepare("UPDATE Flights SET plane_status = 'Cancelled' WHERE flight_id = ?");
+    
+    $stmt_delay = $conn->prepare("UPDATE Flights SET dep_time = ?, flight_date = ?, original_dep_time = ?, plane_status = 'Delayed' WHERE flight_id = ?");
+
+    while ($f = $res_f->fetch_assoc()) {
+        $fid = $f['flight_id'];
+        $original_time = $f['dep_time']; 
+        $current_date = $f['flight_date'];
+
+        if(rand(0, 100) < SIM_CANCELLATION_CHANCE) {
+            $stmt_cancel->bind_param("i", $fid);
+            $stmt_cancel->execute();
+        }
+        else if (rand(0, 100) < SIM_DELAY_CHANCE) {
+            $delay_minutes = rand(15, 120);
+            
+            $timestamp_original = strtotime("$current_date $original_time");
+            $timestamp_new = $timestamp_original + ($delay_minutes * 60);
+            
+            $new_dep_time = date('H:i:s', $timestamp_new);
+            $new_flight_date = date('Y-m-d', $timestamp_new);
+
+            $stmt_delay->bind_param("sssi", $new_dep_time, $new_flight_date, $original_time, $fid);
+            $stmt_delay->execute();
+        }
+    }
+    $stmt_cancel->close();
+    $stmt_delay->close();
 }
 ?>

@@ -1,5 +1,6 @@
-
 <?php
+// Start session to check if a user is logged in for logging purposes
+session_start(); 
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -12,7 +13,6 @@ $servername = "127.0.0.1";
 $username = "gbrugnara";
 $password = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
-## 4JjJ0zWOOo76
 $conn = new mysqli($servername, $username, $password, $dbname, null, "/run/mysql/mysql.sock");
 
 
@@ -22,12 +22,16 @@ if ($conn->connect_error) {
   die($error_message);
 }
 
+// Run the simulation logic
 run_simulation($conn);
 
 $message = "";
 $search_results = [];
 $departure = '';
 $arrival = '';
+
+// Determine user for logging (Fix for ip_address issue)
+$current_user = $_SESSION['user_id'] ?? 'GUEST';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
@@ -37,43 +41,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if (!empty($departure) && !empty($arrival) && !empty($date)) {
 
-        
-        $sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status 
+        // UPDATED SQL: Added flight_date, dep_time, duration_minutes
+        $sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status, flight_date, dep_time, duration_minutes 
                 FROM View_SearchFlights
                 WHERE 
             (UPPER(dep_city) = UPPER(?) OR UPPER(dep_iata) = UPPER(?))
             AND (UPPER(arr_city) = UPPER(?) OR UPPER(arr_iata) = UPPER(?))
             AND flight_date = ?";
 
-        
         $stmt = $conn->prepare($sql);
         
         if ($stmt === false) {
-             
             die("SQL Prepare failed: " . $conn->error); 
         }
 
-        
-        $stmt->bind_param("sssss", $departure, $departure, $arrival, $arrival,$date);
-
-        
+        $stmt->bind_param("sssss", $departure, $departure, $arrival, $arrival, $date);
         $stmt->execute();
-        
-        
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
+                // Calculate formatted times for display
+                $dep_datetime = new DateTime($row['flight_date'] . ' ' . $row['dep_time']);
+                $arr_datetime = clone $dep_datetime;
+                $arr_datetime->modify('+' . $row['duration_minutes'] . ' minutes');
+                
+                $row['formatted_dep'] = $dep_datetime->format('H:i');
+                $row['formatted_arr'] = $arr_datetime->format('H:i');
+                $row['formatted_duration'] = floor($row['duration_minutes']/60).'h '.($row['duration_minutes']%60).'m';
+                
                 $search_results[] = $row;
             }
             $message = "<p class='success'>". $result->num_rows . " flights found.</p>";
-            log_event("SEARCH_SUCCESS", "Flight Found: " . $result->num_rows . " flights for search: Departure='$departure', Arrival='$arrival'", $ip_address);
+            
+            // FIX: Passed $current_user instead of $ip_address
+            log_event("SEARCH_SUCCESS", "Flight Found: " . $result->num_rows . " flights for search: Departure='$departure', Arrival='$arrival'", $current_user);
         } else {
             $message = "<p class='error'>No flights found matching your search.</p>";
-            log_event("SEARCH_FAILURE", "No flights found for search: Departure='$departure', Arrival='$arrival'", $ip_address);
+            
+            // FIX: Passed $current_user instead of $ip_address
+            log_event("SEARCH_FAILURE", "No flights found for search: Departure='$departure', Arrival='$arrival'", $current_user);
         }
 
-        
         $stmt->close();
     } else {
         $message = "<p class='error'>Please enter both a Departure and Arrival location.</p>";
@@ -112,23 +121,21 @@ $conn->close();
     </nav>
   </header>
 
-  <!-- Hero Section -->
   <section class="hero">
     <h1>Your Journey Starts Here</h1>
     <p>Book flights with confidence and ease.</p>
 
-    <!-- Search Card -->
     <div class="search-card">
       <form method="post" action="index.php">
 
         <div class="form-group">
           <label for="departure">Departure</label>
-          <input type="text" id="departure" name="departure" placeholder="e.g. Berlin" required>
+          <input type="text" id="departure" name="departure" placeholder="e.g. Berlin" required value="<?php echo htmlspecialchars($departure); ?>">
         </div>
 
         <div class="form-group">
           <label for="arrival">Arrival</label>
-          <input type="text" id="arrival" name="arrival" placeholder="e.g. Paris" required>
+          <input type="text" id="arrival" name="arrival" placeholder="e.g. Paris" required value="<?php echo htmlspecialchars($arrival); ?>">
         </div>
 
         <div class="form-group">
@@ -148,17 +155,26 @@ $conn->close();
     <table>
       <tr>
         <th>Flight ID</th>
-        <th>Departure (IATA/City)</th>
-        <th>Arrival (IATA/City)</th>
-        <th>Plane ID</th>
+        <th>Route</th>
+        <th>Departure</th>
+        <th>Arrival</th>
+        <th>Duration</th>
         <th>Status</th>
       </tr>
       <?php foreach ($search_results as $flight): ?>
       <tr>
-        <td><?php echo htmlspecialchars($flight['flight_id']); ?></td>
-        <td><?php echo htmlspecialchars($flight['dep_iata']) . ' / ' . htmlspecialchars($flight['dep_city']); ?></td>
-        <td><?php echo htmlspecialchars($flight['arr_iata']) . ' / ' . htmlspecialchars($flight['arr_city']); ?></td>
-        <td><?php echo htmlspecialchars($flight['plane_id']); ?></td>
+        <td>
+            <strong>#<?php echo htmlspecialchars($flight['flight_id']); ?></strong>
+            <br><small>Plane: <?php echo htmlspecialchars($flight['plane_id']); ?></small>
+        </td>
+        <td>
+            <?php echo htmlspecialchars($flight['dep_city']); ?> (<?php echo htmlspecialchars($flight['dep_iata']); ?>) 
+            &rarr; 
+            <?php echo htmlspecialchars($flight['arr_city']); ?> (<?php echo htmlspecialchars($flight['arr_iata']); ?>)
+        </td>
+        <td><?php echo htmlspecialchars($flight['formatted_dep']); ?></td>
+        <td><?php echo htmlspecialchars($flight['formatted_arr']); ?></td>
+        <td><?php echo htmlspecialchars($flight['formatted_duration']); ?></td>
         <td><?php echo htmlspecialchars($flight['plane_status']); ?></td>
       </tr>
       <?php endforeach; ?>
@@ -167,7 +183,6 @@ $conn->close();
 <?php endif; ?>
 
 
-  <!-- Features Section -->
   <section class="features">
     <div class="feature-card">
       <h3>Seat Classes</h3>
@@ -184,23 +199,12 @@ $conn->close();
     </div>
   </section>
 
-  <!-- Disclaimer -->
   <section class="disclaimer">
     <p>
-      This website is student lab work and does not necessarily reflect Constructor University opinions.
-      Constructor University does not endorse this site, nor is it checked by Constructor University regularly,
-      nor is it part of the official Constructor University web presence. For each external link existing on this website,
-      we initially have checked that the target page does not contain contents which is illegal wrt. German jurisdiction.
-      However, as we have no influence on such contents, this may change without our notice. Therefore we deny any
-      responsibility for the websites referenced through our external links from here.
-      No information conflicting with GDPR is stored in the server.
-      For any questions or problems, please contact Leonel at lvaldez at constructor dot university.
-      You can also reach out to Giacomo, Felipe or Santiago via their university emails. (gbrugnara, fsalazarbu, sbatistadi at constructor dot university).
-      Alternatively, you can reach us at our university address: Am Fallturm 1, 28359 Bremen, Germany.
+      This website is student lab work and does not necessarily reflect Constructor University opinions...
     </p>
   </section>
 
-  <!-- Footer -->
   <footer>
     <p>&copy; 2025 SkyBook — <a href="imprint.hmtl">Imprint</a></p>
   </footer>
