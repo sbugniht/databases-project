@@ -12,10 +12,8 @@ $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
-## system that manages flights automatically based on time user = 1000 pwd= system
 
-
-
+// Check for admin privileges
 if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
   header("Location: login.php");
   exit();
@@ -24,7 +22,7 @@ if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 1) {
 $admin_id = $_SESSION['user_id'];
 log_event("ADMIN_ACCESS_SUCCESS", "Admin dashboard access granted.", $admin_id);
 
-
+// Fetch Airports
 $airports = [];
 $sql_airports = "SELECT airport_id, iata, city FROM Airport ORDER BY iata ASC";
 $result_airports = $conn->query($sql_airports);
@@ -34,7 +32,7 @@ if ($result_airports) {
     }
 }
 
-
+// Fetch Planes
 $planes = [];
 $sql_planes = "
     SELECT 
@@ -57,7 +55,7 @@ if ($result_planes) {
     }
 }
 
-
+// Fetch Existing Flights (with time details)
 $flights = [];
 $existing_flights = []; 
 $sql_flights = "
@@ -75,14 +73,6 @@ $sql_flights = "
     FROM View_SearchFlights
     ORDER BY flight_date DESC, dep_time ASC;
 ";
-$existing_countries = [];
-$sql_countries = "SELECT country FROM Fee ORDER BY country ASC";
-$result_countries = $conn->query($sql_countries);
-if ($result_countries) {
-    while ($row = $result_countries->fetch_assoc()) {
-        $existing_countries[] = $row['country'];
-    }
-}
 $result_flights = $conn->query($sql_flights);
 if ($result_flights) {
     while ($row = $result_flights->fetch_assoc()) {
@@ -94,7 +84,17 @@ if ($result_flights) {
     }
 }
 
-// visualizing seats logic
+// Fetch Existing Countries for Fees
+$existing_countries = [];
+$sql_countries = "SELECT country FROM Fee ORDER BY country ASC";
+$result_countries = $conn->query($sql_countries);
+if ($result_countries) {
+    while ($row = $result_countries->fetch_assoc()) {
+        $existing_countries[] = $row['country'];
+    }
+}
+
+// Visualizing seats logic
 $simulated_seats = [];
 $error_message = '';
 
@@ -119,7 +119,6 @@ if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) {
     $result_seat_data = $stmt_seat_data->get_result();
 
     if ($result_seat_data->num_rows > 0) {
-        
         log_event("ADMIN_VIEW_SEATS_SUCCESS","Seat map visualized for Flight ID: " . $target_flight_id, $_SESSION['user_id']);
         
         $seats_per_row = 6;
@@ -128,7 +127,6 @@ if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) {
         
         while ($row = $result_seat_data->fetch_assoc()) {
             if ($seat_counter % $seats_per_row === 0) {
-                
                 $simulated_seats[$row_index] = [];
             }
             
@@ -143,14 +141,12 @@ if (isset($_GET['view_flight_id']) && is_numeric($_GET['view_flight_id'])) {
             if ($seat_counter % $seats_per_row === 0) {
                 $row_index++;
             }
-            
         }
     } else {
-        $error_message = "Nessun posto trovato per il Volo ID $target_flight_id.";
+        $error_message = "No seats found for Flight ID $target_flight_id.";
         log_event("ADMIN_VIEW_SEATS_FAILURE","No seats found for Flight ID: " . $target_flight_id, $_SESSION['user_id']);
     }
     $stmt_seat_data->close();
-
 }
 
 $conn->close();
@@ -183,48 +179,48 @@ $conn->close();
              <?php echo htmlspecialchars($_GET['msg']); ?>
         </div>
     <?php endif; ?>
+    
     <section class="admin-management-content">
         
         <h2>Existing Planes & Inventory</h2>
         <div class="plane-inventory-container">
             
             <div class="plane-list-card" style="flex-basis: 350px;">
-        <h3>Current Plane IDs</h3>
-        <?php if (!empty($planes)): ?>
-            <ul>
-                <?php foreach ($planes as $plane): ?>
-                    <li>
-                        <strong>ID <?php echo htmlspecialchars($plane['plane_id']); ?>:</strong> 
-                        <?php echo htmlspecialchars($plane['type_status']); ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else: ?>
-            <p>No planes found.</p>
-        <?php endif; ?>
-    </div>
-    
-    <div class="plane-list-card" style="flex-basis: 350px;">
-        <h3>Existing Airport Locations</h3>
-        <div class="scrollable-table-container" style="max-height: 250px;">
-            <?php if (!empty($airports)): ?>
-                <ul>
-                    <?php foreach ($airports as $a): ?>
-                        <li>
-                            <strong>ID <?php echo htmlspecialchars($a['airport_id']); ?>:</strong> 
-                            <?php echo htmlspecialchars($a['city']) . ' (' . htmlspecialchars($a['iata']) . ') - ' . htmlspecialchars($a['country']); ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php else: ?>
-                <p>No airports found.</p>
-            <?php endif; ?>
-        </div>
-    </div>
+                <h3>Current Plane IDs</h3>
+                <?php if (!empty($planes)): ?>
+                    <ul>
+                        <?php foreach ($planes as $plane): ?>
+                            <li>
+                                <strong>ID <?php echo htmlspecialchars($plane['plane_id']); ?>:</strong> 
+                                <?php echo htmlspecialchars($plane['type_status']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <p>No planes found.</p>
+                <?php endif; ?>
+            </div>
             
+            <div class="plane-list-card" style="flex-basis: 350px;">
+                <h3>Existing Airport Locations</h3>
+                <div class="scrollable-table-container" style="max-height: 250px;">
+                    <?php if (!empty($airports)): ?>
+                        <ul>
+                            <?php foreach ($airports as $a): ?>
+                                <li>
+                                    <strong>ID <?php echo htmlspecialchars($a['airport_id']); ?>:</strong> 
+                                    <?php echo htmlspecialchars($a['city']) . ' (' . htmlspecialchars($a['iata']) . ')'; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else: ?>
+                        <p>No airports found.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
             
             <div class="plane-seats-card">
-                <h3>Seat Visualizer (Flight: <?php echo isset($target_flight_id) ? $target_flight_id : 'Seleziona'; ?>)</h3>
+                <h3>Seat Visualizer (Flight: <?php echo isset($target_flight_id) ? $target_flight_id : 'Select'; ?>)</h3>
                 <p>Select Flight ID to visualize seats status:</p>
                 
                 <form method="get" action="admin.php" class="seat-selection-form">
@@ -247,16 +243,13 @@ $conn->close();
                             <div class="aisle-marker">Corridor</div>
 
                             <div class="seat-rows-container">
-
                             <?php foreach ($simulated_seats as $row_index => $row): ?>
                                 <div class="seat-row">
                                     <div class="row-label"><?php echo $row_index + 1; ?></div>
-
                                     <?php 
                                     $seat_in_row_counter = 0;
                                     foreach ($row as $seat): 
                                         $seat_in_row_counter++;
-                                        
                                         $gap_class = ($seat_in_row_counter === 4) ? 'has-aisle' : ''; 
                                         ?>
                                             <button class="seat-btn <?php echo $seat['status']; ?> <?php echo $gap_class; ?> <?php echo strtolower($seat['class']); ?>" 
@@ -266,15 +259,18 @@ $conn->close();
                                         <?php endforeach; ?>
                                 </div>
                             <?php endforeach; ?>
-                                    
-                            </div> <div class="fuselage-marker">Airplane Tail</div>                    
-                        </div> <?php else: ?>
-                        <p><?php echo $error_message ?: 'Select a plane to visualize the seats.'; ?></p>
+                            </div> 
+                            <div class="fuselage-marker">Airplane Tail</div>                    
+                        </div> 
+                    <?php else: ?>
+                        <p><?php echo $error_message ?: 'Select a flight to visualize the seats.'; ?></p>
                     <?php endif; ?>
                 </div>    
+            </div>
         </div>
 
         <hr>
+        
         <h2>Manage Country Fees</h2>
         <div class="flight-management-grid">
             <div class="form-card" style="flex-basis: 100%;">
@@ -291,8 +287,11 @@ $conn->close();
                         </thead>
                         <tbody>
                             <?php 
+                            // Re-connect to fetch fees as they might have changed
+                            $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
                             $res_fees = $conn->query("SELECT * FROM Fee ORDER BY country ASC");
-                            while($f = $res_fees->fetch_assoc()): 
+                            if($res_fees) {
+                                while($f = $res_fees->fetch_assoc()): 
                             ?>
                             <tr>
                                 <form method="post" action="manage_fees.php">
@@ -303,7 +302,11 @@ $conn->close();
                                     <td><button type="submit" class="btn-primary" style="padding: 5px 10px; margin: 0;">Update</button></td>
                                 </form>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php 
+                                endwhile; 
+                            }
+                            $conn->close();
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -311,6 +314,7 @@ $conn->close();
         </div>
 
         <hr>
+        
         <h2>Existing Flight IDs</h2>
         <div class="flight-list-scroll-wrapper">
              <div class="plane-list-card full-width-card">
@@ -321,7 +325,10 @@ $conn->close();
                             <thead>
                                 <tr>
                                     <th>Flight ID</th>
-                                    <th>Date & Time</th> <th>Route</th>       <th>Dur.</th>        <th>Status</th>
+                                    <th>Date & Time</th> 
+                                    <th>Route</th>       
+                                    <th>Dur.</th>        
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -342,15 +349,15 @@ $conn->close();
                             </tbody>
                         </table>
                     <?php else: ?>
-                        <p>No flight found.</p>
+                        <p>No flights found.</p>
                     <?php endif; ?>
                 </div>
             </div>
             <div class="plane-seats-card full-width-card">
                 <p>Check ID and route in the table on the left before adding a new flight.</p>
-                
             </div>
         </div>
+        
         <hr>
 
         <h2>Manage Flights</h2>
@@ -408,6 +415,7 @@ $conn->close();
                         <option value="Dom_flight">Domestic</option>
                         <option value="Int_flight">International</option>
                     </select>
+                    
                     <label for="new_flight_date">Departure Date:</label>
                     <input type="date" id="new_flight_date" name="flight_date" required>
 
@@ -443,6 +451,7 @@ $conn->close();
         </div>
 
         <hr>
+        
         <h2>Manage Airports & Locations</h2>
         <div class="flight-management-grid">
             
@@ -511,8 +520,8 @@ $conn->close();
             </div>
         </div>
     </section>
-    
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
@@ -543,14 +552,16 @@ $(function() {
     $countrySelect.on('change', function() {
         if ($(this).val() === 'NEW_COUNTRY_ENTRY') {
             toggleNewCountryFields(true);
+            // Remove 'name' from select so it doesn't conflict with text input
             $(this).removeAttr('name');
             $newCountryName.attr('name', 'country'); 
         } else {
             toggleNewCountryFields(false);
+            // Restore 'name' to select
             $(this).attr('name', 'country');
             $newCountryName.removeAttr('name');
         }
-    }).trigger('change'); 
+    }).trigger('change'); // Run on page load to ensure correct initial state
 });
 </script>
 </body>
