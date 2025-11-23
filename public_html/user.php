@@ -24,6 +24,9 @@ if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 0) {
 $customer_id = $_SESSION['user_id'];
 log_event("CUSTOMER_ACCESS_SUCCESS", "Customer board access granted.", $customer_id);
 
+$res_bal = $conn->query("SELECT balance FROM Customer WHERE USER_ID = $customer_id");
+$user_balance = ($res_bal && $res_bal->num_rows > 0) ? $res_bal->fetch_assoc()['balance'] : 0.00;
+
 $message = "";
 $search_results = [];
 $user_id = $_SESSION['user_id'];
@@ -39,7 +42,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
  
         $sql = "
             SELECT 
-                VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, VSF.flight_date, VSF.dep_time, VSF.duration_minutes,
+                VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, 
+                VSF.flight_date, VSF.dep_time, VSF.duration_minutes,
+                VSF.dep_country, VSF.arr_country, -- Serve per determinare se è domestico
+                F_Fee.dom_fee, F_Fee.int_fee,     -- Fee associate al paese di partenza
                 T.seat_id, SA.class, CP.PRICE,
                 B.booking_id IS NOT NULL AS is_reserved,
                 VSF.plane_id
@@ -47,6 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
             JOIN Tickets T ON VSF.flight_id = T.flight_id
             JOIN SeatAssignment SA ON T.flight_id = SA.flight_id AND T.seat_id = SA.seat_id
             JOIN classPrice CP ON SA.class = CP.class
+            JOIN Fee F_Fee ON VSF.dep_country = F_Fee.country -- Join per ottenere le tasse
             LEFT JOIN Bookings B ON T.flight_id = B.flight_id AND T.seat_id = B.seat_id
             WHERE 
                 (UPPER(VSF.dep_city) = UPPER(?) OR UPPER(VSF.dep_iata) = UPPER(?))
@@ -79,6 +86,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                         $arr_datetime = clone $dep_datetime;
                         $arr_datetime->modify('+' . $row['duration_minutes'] . ' minutes');
                         
+                        $is_domestic = ($row['dep_country'] === $row['arr_country']);
+                        $fee_cost = $is_domestic ? $row['dom_fee'] : $row['int_fee'];
+                        $fee_type = $is_domestic ? 'Domestic Fee' : 'International Fee';
+                        
                         $flights_for_display[$flight_id] = [
                             'info' => [
                                 'flight_id' => $row['flight_id'],
@@ -87,7 +98,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                                 'arr_iata' => $row['arr_iata'],
                                 'date_str' => $dep_datetime->format('D, d M Y'),
                                 'time_str' => $dep_datetime->format('H:i') . ' - ' . $arr_datetime->format('H:i'),
-                                'duration_str' => floor($row['duration_minutes']/60) . 'h ' . ($row['duration_minutes']%60) . 'm'
+                                'duration_str' => floor($row['duration_minutes']/60) . 'h ' . ($row['duration_minutes']%60) . 'm',
+                                'fee_cost' => $fee_cost,
+                                'fee_type' => $fee_type
                             ],
                             'seats' => [],
                         ];
@@ -130,6 +143,19 @@ $conn->close();
 <head>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <style>
+        .wallet-container {
+            margin-left: auto;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #f8f9fa;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
   <header>
@@ -140,9 +166,14 @@ $conn->close();
     <nav>
       <ul>
         <li><a href="user.php" class="active">Search & Book</a></li>
-        </ul>
+      </ul>
     </nav>
     
+    <div class="wallet-container">
+        <span style="font-weight: bold; color: var(--primary-color);">Wallet: €<span id="user-balance"><?php echo number_format($user_balance, 2); ?></span></span>
+        <button id="add-funds-btn" class="btn-primary" style="padding: 5px 10px; font-size: 0.8em; height: auto;">+100€</button>
+    </div>
+
     <a href="logout.php" class="header-action-btn">Logout</a>
 
   </header>
@@ -167,7 +198,6 @@ $conn->close();
         <button type="submit" class="btn-primary">Search Available Seats</button>
       </form>
       <?php 
-       
         if (isset($_GET['status'])) {
             $msg_class = $_GET['status'] === 'success' ? 'success' : 'error';
             $msg_text = htmlspecialchars($_GET['msg']);
@@ -185,12 +215,29 @@ $conn->close();
           <h3>Booking Confirmation</h3>
           <p id="summary-flight"></p>
           <p>Seat: <strong id="summary-seat-number"></strong> (<span id="summary-seat-class"></span>)</p>
-          <p>Price: <strong id="summary-price"></strong> €</p>
           
-          <form method="post" action="book_flight.php" id="booking-form">
+          <hr style="margin: 10px 0;">
+          
+          <div style="display: flex; justify-content: space-between;">
+              <span>Base Price:</span>
+              <strong>€<span id="summary-base-price"></span></strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+              <span id="summary-fee-type">Fee:</span>
+              <strong>€<span id="summary-fee-cost"></span></strong>
+          </div>
+          
+          <hr style="margin: 10px 0;">
+          
+          <div style="display: flex; justify-content: space-between; font-size: 1.2em; color: var(--primary-color);">
+              <strong>Total:</strong>
+              <strong>€<span id="summary-total"></span></strong>
+          </div>
+          
+          <form method="post" action="book_flight.php" id="booking-form" style="margin-top: 15px;">
               <input type="hidden" name="flight_id" id="form-flight-id">
               <input type="hidden" name="seat_id" id="form-seat-id">
-              <button type="submit" class="btn-primary">Confirm Booking</button>
+              <button type="submit" class="btn-primary" style="width: 100%;">Confirm & Pay</button>
           </form>
       </div>
       
@@ -229,10 +276,17 @@ $conn->close();
                               <button 
                                   class="seat-btn <?php echo $seat['status'] . $is_bookable; ?> <?php echo strtolower($seat['class']); ?> bookable" 
                                   title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class'] . ' | Price: ' . $seat['price'] . ' €'; ?>"
+                                  
+                                  /* Data Attributes per JS */
                                   data-flight-id="<?php echo htmlspecialchars($info['flight_id']); ?>"
                                   data-seat-num="<?php echo htmlspecialchars($seat['number']); ?>"
                                   data-seat-class="<?php echo htmlspecialchars($seat['class']); ?>"
                                   data-price="<?php echo htmlspecialchars($seat['price']); ?>"
+                                  
+                                  /* New Fee Attributes */
+                                  data-fee="<?php echo htmlspecialchars($info['fee_cost']); ?>"
+                                  data-fee-type="<?php echo htmlspecialchars($info['fee_type']); ?>"
+                                  
                                   data-route="<?php echo htmlspecialchars($info['route']); ?>"
                                   <?php echo $seat['status'] === 'reserved' ? 'disabled' : ''; ?>>
                                   <?php echo htmlspecialchars($seat['number']); ?>
@@ -265,16 +319,27 @@ $conn->close();
                 
                 event.currentTarget.classList.add('selected');
 
-                const flightId = event.currentTarget.dataset.flightId;
-                const seatNum = event.currentTarget.dataset.seatNum;
-                const seatClass = event.currentTarget.dataset.seatClass;
-                const price = event.currentTarget.dataset.price;
-                const route = event.currentTarget.dataset.route;
+                const ds = event.currentTarget.dataset;
+                const flightId = ds.flightId;
+                const seatNum = ds.seatNum;
+                const seatClass = ds.seatClass;
+                const route = ds.route;
+                
+                const price = parseFloat(ds.price);
+                const fee = parseFloat(ds.fee);
+                const feeType = ds.feeType;
+                const total = price + fee;
 
+                // Update UI Summary
                 document.getElementById('summary-flight').textContent = `Flight ID ${flightId}: ${route}`;
                 document.getElementById('summary-seat-number').textContent = seatNum;
                 document.getElementById('summary-seat-class').textContent = seatClass;
-                document.getElementById('summary-price').textContent = price;
+                
+                // Update Costs
+                document.getElementById('summary-base-price').textContent = price.toFixed(2);
+                document.getElementById('summary-fee-cost').textContent = fee.toFixed(2);
+                document.getElementById('summary-fee-type').textContent = feeType;
+                document.getElementById('summary-total').textContent = total.toFixed(2);
                 
                 document.getElementById('form-flight-id').value = flightId;
                 document.getElementById('form-seat-id').value = seatNum;
@@ -284,6 +349,35 @@ $conn->close();
             });
         });
         
+        $('#add-funds-btn').on('click', function(e) {
+            e.preventDefault();
+            const btn = $(this);
+            btn.prop('disabled', true).text('Adding...');
+            
+            $.ajax({
+                url: 'user_wallet.php',
+                method: 'POST',
+                data: { action: 'add_funds' },
+                dataType: 'json',
+                success: function(res) {
+                    if(res.success) {
+                        $('#user-balance').text(res.new_balance);
+                        $('#user-balance').css('color', '#28a745');
+                        setTimeout(() => $('#user-balance').css('color', ''), 1000);
+                    } else {
+                        alert('Error: ' + (res.message || 'Unknown error'));
+                    }
+                },
+                error: function() {
+                    alert('Connection failed.');
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('+100€');
+                }
+            });
+        });
+
+        // --- Autocomplete ---
         const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'get_locations.php';
         
         function setupDynamicAutocomplete(selector) {
@@ -307,20 +401,16 @@ $conn->close();
                 delay: 300,
                 select: function(event, ui) {
                     const selectedValue = ui.item.value; 
-                    
                     const match = selectedValue.match(/\(([^)]+)\)$/);
-                    
                     let finalValue = selectedValue;
                     
                     if (match && match[1]) {
                         const iata = match[1];
                         const city = selectedValue.substring(0, selectedValue.indexOf(' (')).trim();
-
                         finalValue = iata.length <= city.length ? iata : city;
                     } 
                     
                     $(selector).val(finalValue);
-                    
                     event.preventDefault(); 
                 }
             });

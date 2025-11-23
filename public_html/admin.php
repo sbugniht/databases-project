@@ -271,12 +271,46 @@ $conn->close();
                         </div> <?php else: ?>
                         <p><?php echo $error_message ?: 'Select a plane to visualize the seats.'; ?></p>
                     <?php endif; ?>
-                </div>
-            
+                </div>    
         </div>
-        
+
         <hr>
-        
+        <h2>Manage Country Fees</h2>
+        <div class="flight-management-grid">
+            <div class="form-card" style="flex-basis: 100%;">
+                <h3>Update Fees per Country</h3>
+                <div class="scrollable-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Domestic Fee (€)</th>
+                                <th>International Fee (€)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $res_fees = $conn->query("SELECT * FROM Fee ORDER BY country ASC");
+                            while($f = $res_fees->fetch_assoc()): 
+                            ?>
+                            <tr>
+                                <form method="post" action="manage_fees.php">
+                                    <input type="hidden" name="country" value="<?php echo htmlspecialchars($f['country']); ?>">
+                                    <td><strong><?php echo htmlspecialchars($f['country']); ?></strong></td>
+                                    <td><input type="number" name="dom_fee" value="<?php echo $f['dom_fee']; ?>" style="width: 80px;"></td>
+                                    <td><input type="number" name="int_fee" value="<?php echo $f['int_fee']; ?>" style="width: 80px;"></td>
+                                    <td><button type="submit" class="btn-primary" style="padding: 5px 10px; margin: 0;">Update</button></td>
+                                </form>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <hr>
         <h2>Existing Flight IDs</h2>
         <div class="flight-list-scroll-wrapper">
              <div class="plane-list-card full-width-card">

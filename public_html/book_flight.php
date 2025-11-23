@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 include_once 'logTracker.php';
 
 $servername = "127.0.0.1";
@@ -9,69 +8,81 @@ $password_db = "KeRjnLwqj+rTTG3E";
 $dbname = "db_gbrugnara";
 $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
 
-
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->connect_error);
 }
 if (!isset($_SESSION['user_id']) || (int)$_SESSION['privilege'] !== 0) {
-    $attempt_user = $_SESSION['user_id'] ?? 'GUEST';
-    log_event("ACCESS_DENIED", "Attempted unauthorized booking access.", $attempt_user);
-    die("Access Denied. Only logged-in customers can book flights.");
+    die("Access Denied.");
 }
 
 $user_id = $_SESSION['user_id'];
-$message = "";
-$success = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['flight_id']) && isset($_POST['seat_id'])) {
     
     $flight_id = (int)$_POST['flight_id'];
     $seat_id = (int)$_POST['seat_id'];
     
-    
-    $check_sql = "SELECT booking_id FROM Bookings WHERE flight_id = ? AND seat_id = ?";
-    $check_stmt = $conn->prepare($check_sql);
-    $check_stmt->bind_param("ii", $flight_id, $seat_id);
-    $check_stmt->execute();
-    $check_result = $check_stmt->get_result();
+    $conn->begin_transaction();
 
-    if ($check_result->num_rows > 0) {
-        $message = "Booking failed: The seat has just been taken.";
-        log_event("BOOKING_FAILURE", "Seat $seat_id on Flight $flight_id already booked.", $user_id);
-    } else {
-        try {
-            
-            $sql = "INSERT INTO Bookings (user_id, flight_id, seat_id) VALUES (?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iii", $user_id, $flight_id, $seat_id);
-            $stmt->execute();
+    try {
+        $sql_info = "
+            SELECT 
+                CP.PRICE as base_price,
+                F_Fee.dom_fee,
+                F_Fee.int_fee,
+                Adep.country as dep_country,
+                Aarr.country as arr_country,
+                C.balance
+            FROM SeatAssignment SA
+            JOIN Flights F ON SA.flight_id = F.flight_id
+            JOIN classPrice CP ON SA.class = CP.class
+            JOIN Airport Adep ON F.Dairport_id = Adep.airport_id
+            JOIN Airport Aarr ON F.Aairport_id = Aarr.airport_id
+            JOIN Fee F_Fee ON Adep.country = F_Fee.country
+            JOIN Customer C ON C.USER_ID = ?
+            WHERE SA.flight_id = ? AND SA.seat_id = ?
+            FOR UPDATE";
 
-            if ($stmt->affected_rows === 1) {
-                $success = true;
-                $message = "Successfully booked seat $seat_id on Flight $flight_id!";
-                log_event("BOOKING_SUCCESS", $message, $user_id);
-            } else {
-                $message = "Booking failed: Could not insert record.";
-                log_event("BOOKING_FAILURE", $message, $user_id);
-            }
-            $stmt->close();
+        $stmt = $conn->prepare($sql_info);
+        $stmt->bind_param("iii", $user_id, $flight_id, $seat_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        if ($res->num_rows === 0) throw new Exception("Flight or Seat not found.");
+        $data = $res->fetch_assoc();
+        $stmt->close();
 
-        } catch (mysqli_sql_exception $e) {
-            
-            $message = "Booking failed due to an error: " . $e->getMessage();
-            log_event("BOOKING_FAILURE", $message, $user_id);
+        $is_domestic = ($data['dep_country'] === $data['arr_country']);
+        $fee = $is_domestic ? $data['dom_fee'] : $data['int_fee'];
+        $total_cost = $data['base_price'] + $fee;
+
+        if ($data['balance'] < $total_cost) {
+            throw new Exception("Insufficient funds. Balance: €" . $data['balance'] . ", Required: €" . $total_cost);
         }
-    }
-    
-    $conn->close();
 
-    
-    $status_param = $success ? 'success' : 'error';
-    header("Location: user.php?status=$status_param&msg=" . urlencode($message));
+        $check = $conn->query("SELECT booking_id FROM Bookings WHERE flight_id = $flight_id AND seat_id = $seat_id");
+        if ($check->num_rows > 0) throw new Exception("Seat already taken.");
+
+        $stmt_pay = $conn->prepare("UPDATE Customer SET balance = balance - ? WHERE USER_ID = ?");
+        $stmt_pay->bind_param("di", $total_cost, $user_id);
+        if (!$stmt_pay->execute()) throw new Exception("Payment failed.");
+        $stmt_pay->close();
+
+        $stmt_book = $conn->prepare("INSERT INTO Bookings (user_id, flight_id, seat_id) VALUES (?, ?, ?)");
+        $stmt_book->bind_param("iii", $user_id, $flight_id, $seat_id);
+        if (!$stmt_book->execute()) throw new Exception("Booking insert failed.");
+        $stmt_book->close();
+
+        $conn->commit();
+        
+        header("Location: user.php?status=success&msg=" . urlencode("Booked! Cost: €$total_cost. New Balance: €" . ($data['balance'] - $total_cost)));
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        header("Location: user.php?status=error&msg=" . urlencode($e->getMessage()));
+    }
     exit();
 }
-
-
 header("Location: user.php");
 exit();
 ?>
