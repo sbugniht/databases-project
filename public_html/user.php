@@ -485,3 +485,5 @@ $conn->close();
   </script>
 </body>
 </html>
+
+// total of around 4038 lines of code 

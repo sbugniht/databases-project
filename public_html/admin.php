@@ -519,6 +519,68 @@ $conn->close();
                 </form>
             </div>
         </div>
+        <hr>
+        <h2>Manage Users & Admins</h2>
+        
+        <div class="flight-management-grid">
+            
+            <div class="form-card">
+                <h3>Add New Administrator</h3>
+                <form method="post" action="manage_users.php" class="flight-form">
+                    <input type="hidden" name="action" value="add_admin">
+                    
+                    <label>New Admin ID:</label>
+                    <input type="number" name="new_admin_id" placeholder="e.g. 9001" required>
+                    
+                    <label>Password:</label>
+                    <input type="password" name="new_admin_pwd" placeholder="Secure Password" required>
+                    
+                    <button type="submit" class="btn-primary">Create Admin</button>
+                </form>
+            </div>
+
+            <div class="form-card" style="flex-basis: 100%;">
+                <h3>User List (Customers & Admins)</h3>
+                <div class="scrollable-table-container" style="max-height: 300px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Role</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $conn = new mysqli($servername, $username_db, $password_db, $dbname, null, "/run/mysql/mysql.sock");
+                            $sql_users = "SELECT USER_ID, privilege FROM Users WHERE privilege IN (0, 1) ORDER BY privilege DESC, USER_ID ASC";
+                            $res_users = $conn->query($sql_users);
+                            
+                            while($u = $res_users->fetch_assoc()): 
+                                $role_name = ($u['privilege'] == 1) ? '<span style="color:red; font-weight:bold;">Admin</span>' : 'Customer';
+                                $is_self = ($u['USER_ID'] == $_SESSION['user_id']);
+                            ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($u['USER_ID']); ?> <?php if($is_self) echo "(You)"; ?></td>
+                                <td><?php echo $role_name; ?></td>
+                                <td>
+                                    <?php if(!$is_self):  ?>
+                                    <form method="post" action="manage_users.php" onsubmit="return confirm('Are you sure you want to delete User <?php echo $u['USER_ID']; ?>? This will delete all their bookings.');">
+                                        <input type="hidden" name="action" value="delete_user">
+                                        <input type="hidden" name="target_id" value="<?php echo $u['USER_ID']; ?>">
+                                        <button type="submit" class="btn-secondary" style="padding: 5px 10px; margin: 0; background-color: var(--error-color);">Delete</button>
+                                    </form>
+                                    <?php else: ?>
+                                        <span style="color:#ccc;">Current Session</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endwhile; $conn->close(); ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </section>
 </div>
 
