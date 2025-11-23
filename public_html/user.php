@@ -28,24 +28,27 @@ $res_bal = $conn->query("SELECT balance FROM Customer WHERE USER_ID = $customer_
 $user_balance = ($res_bal && $res_bal->num_rows > 0) ? $res_bal->fetch_assoc()['balance'] : 0.00;
 
 $message = "";
-$search_results = [];
+$flights_for_display = [];
 $user_id = $_SESSION['user_id'];
 $departure = '';
 $arrival = '';
+$search_date = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'search') {
        
     $departure = trim($_POST['departure'] ?? '');
     $arrival = trim($_POST['arrival'] ?? '');
+    $search_date = $_POST['date'] ?? ''; 
     
     if (!empty($departure) && !empty($arrival)) {
  
+        // Query Base
         $sql = "
             SELECT 
                 VSF.flight_id, VSF.dep_iata, VSF.dep_city, VSF.arr_iata, VSF.arr_city, 
                 VSF.flight_date, VSF.dep_time, VSF.duration_minutes,
-                VSF.dep_country, VSF.arr_country, -- Serve per determinare se è domestico
-                F_Fee.dom_fee, F_Fee.int_fee,     -- Fee associate al paese di partenza
+                VSF.dep_country, VSF.arr_country, 
+                F_Fee.dom_fee, F_Fee.int_fee,     
                 T.seat_id, SA.class, CP.PRICE,
                 B.booking_id IS NOT NULL AS is_reserved,
                 VSF.plane_id
@@ -53,33 +56,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
             JOIN Tickets T ON VSF.flight_id = T.flight_id
             JOIN SeatAssignment SA ON T.flight_id = SA.flight_id AND T.seat_id = SA.seat_id
             JOIN classPrice CP ON SA.class = CP.class
-            JOIN Fee F_Fee ON VSF.dep_country = F_Fee.country -- Join per ottenere le tasse
+            JOIN Fee F_Fee ON VSF.dep_country = F_Fee.country 
             LEFT JOIN Bookings B ON T.flight_id = B.flight_id AND T.seat_id = B.seat_id
             WHERE 
                 (UPPER(VSF.dep_city) = UPPER(?) OR UPPER(VSF.dep_iata) = UPPER(?))
                 AND (UPPER(VSF.arr_city) = UPPER(?) OR UPPER(VSF.arr_iata) = UPPER(?))
-            ORDER BY VSF.flight_id, T.seat_id
         ";
+
+        if (!empty($search_date)) {
+            $sql .= " AND VSF.flight_date = ? ";
+        }
+
+        $sql .= " ORDER BY VSF.flight_id, T.seat_id";
 
         $stmt = $conn->prepare($sql);
         
-        $search_results = [];
-        $flights_for_display = []; 
-        $seats_per_row = 6; 
-
         if ($stmt === false) {
             $message = "<p class='error'>SQL Prepare failed: " . $conn->error . "</p>"; 
         } else {
             
-            $stmt->bind_param("ssss", $departure, $departure, $arrival, $arrival);
+            if (!empty($search_date)) {
+                $stmt->bind_param("sssss", $departure, $departure, $arrival, $arrival, $search_date);
+            } else {
+                $stmt->bind_param("ssss", $departure, $departure, $arrival, $arrival);
+            }
+
             $stmt->execute();
             $result = $stmt->get_result();
 
-        if ($result->num_rows > 0) {
+            if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     $flight_id = $row['flight_id'];
-                    $seat_index = (int)$row['seat_id'] - 1; 
-
                     
                     if (!isset($flights_for_display[$flight_id])) {
                         $dep_datetime = new DateTime($row['flight_date'] . ' ' . $row['dep_time']);
@@ -106,15 +113,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                         ];
                     }
 
-                    
+                    $seat_index = (int)$row['seat_id'] - 1; 
+                    $seats_per_row = 6; 
                     $row_index = floor($seat_index / $seats_per_row);
-                    
                     
                     if (!isset($flights_for_display[$flight_id]['seats'][$row_index])) {
                         $flights_for_display[$flight_id]['seats'][$row_index] = [];
                     }
 
-                    
                     $flights_for_display[$flight_id]['seats'][$row_index][] = [
                         'number' => $row['seat_id'],
                         'status' => $row['is_reserved'] ? 'reserved' : 'available',
@@ -122,17 +128,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                         'price' => $row['PRICE'],
                     ];
                 }
-                $message = "<p class='success'>Flights found. Click an available seat to book!</p>";
-                log_event("FLIGHT_SEARCH_SUCCESS", "Flights found for search: Departure='$departure', Arrival='$arrival'", $user_id);
+                $message = "<p class='success'>Flights found. Select a seat below.</p>";
+                log_event("FLIGHT_SEARCH_SUCCESS", "Search: $departure -> $arrival (Date: $search_date)", $user_id);
             } else {
-                $message = "<p class='error'>No available seats found for the selected route.</p>";
-                log_event("FLIGHT_SEARCH_FAIL", "No existing flight for search: Departure='$departure', Arrival='$arrival'", $user_id);
+                $message = "<p class='error'>No flights found for this route/date.</p>";
+                log_event("FLIGHT_SEARCH_FAIL", "Search failed: $departure -> $arrival (Date: $search_date)", $user_id);
             }
             $stmt->close();
         }
     } else {
         $message = "<p class='error'>Please enter both a Departure and Arrival location.</p>";
-        log_event("FLIGHT_SEARCH_FAIL", "Missing departure or arrival location in search.", $user_id);
     }
 }
 
@@ -154,6 +159,48 @@ $conn->close();
             padding: 5px 15px;
             border-radius: 20px;
             border: 1px solid #ddd;
+        }
+        
+        .search-row-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .swap-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: var(--primary-color);
+            margin-bottom: 5px; /* Align with inputs */
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .swap-btn:hover {
+            background-color: #f0f0f0;
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .search-row-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .swap-btn {
+                margin: 0 auto;
+                transform: rotate(90deg); /* Rotate arrow for vertical layout */
+            }
+            .swap-btn:hover {
+                transform: rotate(270deg);
+            }
         }
     </style>
 </head>
@@ -185,17 +232,27 @@ $conn->close();
     <div class="search-card user-search">
       <form method="post" action="user.php">
         <input type="hidden" name="action" value="search">
-        <div class="form-group">
-          <label for="departure">Departure (City/IATA)</label>
-          <input type="text" id="departure" name="departure" placeholder="e.g. New York or JFK" required value="<?php echo htmlspecialchars($departure); ?>">
+        
+        <div class="search-row-container">
+            <div class="form-group" style="flex: 1;">
+              <label for="departure">Departure (City/IATA)</label>
+              <input type="text" id="departure" name="departure" placeholder="e.g. New York or JFK" required value="<?php echo htmlspecialchars($departure); ?>">
+            </div>
+
+            <button type="button" id="swap-locations-btn" class="swap-btn" title="Swap Departure and Arrival">⇄</button>
+
+            <div class="form-group" style="flex: 1;">
+              <label for="arrival">Arrival (City/IATA)</label>
+              <input type="text" id="arrival" name="arrival" placeholder="e.g. Los Angeles or LAX" required value="<?php echo htmlspecialchars($arrival); ?>">
+            </div>
         </div>
 
-        <div class="form-group">
-          <label for="arrival">Arrival (City/IATA)</label>
-          <input type="text" id="arrival" name="arrival" placeholder="e.g. Los Angeles or LAX" required value="<?php echo htmlspecialchars($arrival); ?>">
+        <div class="form-group" style="width: 100%; margin-top: 15px;">
+            <label for="date">Date (Optional)</label>
+            <input type="date" id="date" name="date" value="<?php echo htmlspecialchars($search_date); ?>">
         </div>
 
-        <button type="submit" class="btn-primary">Search Available Seats</button>
+        <button type="submit" class="btn-primary" style="margin-top: 15px;">Search Available Seats</button>
       </form>
       <?php 
         if (isset($_GET['status'])) {
@@ -277,16 +334,12 @@ $conn->close();
                                   class="seat-btn <?php echo $seat['status'] . $is_bookable; ?> <?php echo strtolower($seat['class']); ?> bookable" 
                                   title="<?php echo 'Seat: ' . $seat['number'] . ' | Class: ' . $seat['class'] . ' | Price: ' . $seat['price'] . ' €'; ?>"
                                   
-                                  /* Data Attributes per JS */
                                   data-flight-id="<?php echo htmlspecialchars($info['flight_id']); ?>"
                                   data-seat-num="<?php echo htmlspecialchars($seat['number']); ?>"
                                   data-seat-class="<?php echo htmlspecialchars($seat['class']); ?>"
                                   data-price="<?php echo htmlspecialchars($seat['price']); ?>"
-                                  
-                                  /* New Fee Attributes */
                                   data-fee="<?php echo htmlspecialchars($info['fee_cost']); ?>"
                                   data-fee-type="<?php echo htmlspecialchars($info['fee_type']); ?>"
-                                  
                                   data-route="<?php echo htmlspecialchars($info['route']); ?>"
                                   <?php echo $seat['status'] === 'reserved' ? 'disabled' : ''; ?>>
                                   <?php echo htmlspecialchars($seat['number']); ?>
@@ -311,6 +364,19 @@ $conn->close();
         const summaryCard = document.getElementById('booking-summary');
         const bookableSeats = document.querySelectorAll('.seat-btn.bookable');
 
+        const swapBtn = document.getElementById('swap-locations-btn');
+        const depInput = document.getElementById('departure');
+        const arrInput = document.getElementById('arrival');
+
+        if (swapBtn) {
+            swapBtn.addEventListener('click', () => {
+                const temp = depInput.value;
+                depInput.value = arrInput.value;
+                arrInput.value = temp;
+            });
+        }
+        // --------------------------------------
+
         bookableSeats.forEach(button => {
             button.addEventListener('click', (event) => {
                 document.querySelectorAll('.seat-btn.selected').forEach(btn => {
@@ -330,12 +396,10 @@ $conn->close();
                 const feeType = ds.feeType;
                 const total = price + fee;
 
-                // Update UI Summary
                 document.getElementById('summary-flight').textContent = `Flight ID ${flightId}: ${route}`;
                 document.getElementById('summary-seat-number').textContent = seatNum;
                 document.getElementById('summary-seat-class').textContent = seatClass;
                 
-                // Update Costs
                 document.getElementById('summary-base-price').textContent = price.toFixed(2);
                 document.getElementById('summary-fee-cost').textContent = fee.toFixed(2);
                 document.getElementById('summary-fee-type').textContent = feeType;
@@ -377,7 +441,6 @@ $conn->close();
             });
         });
 
-        // --- Autocomplete ---
         const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'get_locations.php';
         
         function setupDynamicAutocomplete(selector) {

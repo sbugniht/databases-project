@@ -30,7 +30,7 @@ $search_results = [];
 $departure = '';
 $arrival = '';
 
-// Determine user for logging (Fix for ip_address issue)
+// Determine user for logging
 $current_user = $_SESSION['user_id'] ?? 'GUEST';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -41,7 +41,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if (!empty($departure) && !empty($arrival) && !empty($date)) {
 
-        // UPDATED SQL: Added flight_date, dep_time, duration_minutes
         $sql = "SELECT flight_id, dep_iata, dep_city, arr_iata, arr_city, plane_id, plane_status, flight_date, dep_time, duration_minutes 
                 FROM View_SearchFlights
                 WHERE 
@@ -61,7 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                // Calculate formatted times for display
                 $dep_datetime = new DateTime($row['flight_date'] . ' ' . $row['dep_time']);
                 $arr_datetime = clone $dep_datetime;
                 $arr_datetime->modify('+' . $row['duration_minutes'] . ' minutes');
@@ -74,12 +72,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             $message = "<p class='success'>". $result->num_rows . " flights found.</p>";
             
-            // FIX: Passed $current_user instead of $ip_address
             log_event("SEARCH_SUCCESS", "Flight Found: " . $result->num_rows . " flights for search: Departure='$departure', Arrival='$arrival'", $current_user);
         } else {
             $message = "<p class='error'>No flights found matching your search.</p>";
-            
-            // FIX: Passed $current_user instead of $ip_address
             log_event("SEARCH_FAILURE", "No flights found for search: Departure='$departure', Arrival='$arrival'", $current_user);
         }
 
@@ -100,7 +95,23 @@ $conn->close();
   <title>SkyBook - Airline Reservation System</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     
+  <style>
+      /* Custom style for the map container */
+      #user-map {
+          height: 400px;
+          width: 100%;
+          border-radius: 8px;
+          margin-top: 15px;
+          z-index: 1; /* Ensure it doesn't overlap dropdowns incorrectly */
+      }
+  </style>
 </head>
 <body>
 
@@ -198,6 +209,12 @@ $conn->close();
       <p>Stay up to date with real-time flight information and updates.</p>
     </div>
   </section>
+  
+  <div class="results" style="margin-top: 40px;">
+      <h2>User Location (Linked Service)</h2>
+      <p>Your current region based on IP address:</p>
+      <div id="user-map"></div>
+  </div>
 
   <section class="disclaimer">
     <p>
@@ -208,74 +225,96 @@ $conn->close();
   <footer>
     <p>&copy; 2025 SkyBook — <a href="imprint.hmtl">Imprint</a></p>
   </footer>
+  
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
   
   <script>
     $( function() {
       
+      // --- 1. AUTOCOMPLETE LOGIC (EXISTING) ---
       const DYNAMIC_AUTOCOMPLETE_ENDPOINT = 'get_locations.php';
       
       function setupDynamicAutocomplete(selector) {
           $( selector ).autocomplete({
-              
               source: function(request, response) {
-                  
                   $.ajax({
                       url: DYNAMIC_AUTOCOMPLETE_ENDPOINT,
                       dataType: "json",
-                      data: {
-                          
-                          term: request.term
-                      },
+                      data: { term: request.term },
                       success: function(data) {
-                          
                           if (data.length === 0 && request.term.length >= 2) {
-                             console.log("Autocomplete: 0 results for " + request.term + ". Check DB connectivity or search view data.");
+                             console.log("Autocomplete: 0 results.");
                           }
-                          
                           response(data); 
                       },
-                      error: function(xhr, status, error) {
-                          console.error("Autocomplete AJAX Error:", status, error, xhr.responseText);
-                          response([]); 
-                      }
+                      error: function(xhr, status, error) { response([]); }
                   });
               },
               minLength: 2, 
               delay: 300,
               select: function(event, ui) {
                   const selectedValue = ui.item.value;
-                  
                   const match = selectedValue.match(/\(([^)]+)\)$/);
-                  
                   let finalValue = selectedValue;
-                  
                   if (match && match[1]) {
-                      
                       const iata = match[1];
                       const city = selectedValue.substring(0, selectedValue.indexOf(' (')).trim();
-
-                      if (iata.length < city.length) {
-                         finalValue = iata;
-                      } else {
-                         finalValue = city;
-                      }
+                      if (iata.length < city.length) { finalValue = iata; } else { finalValue = city; }
                   } 
-                  
                   $(selector).val(finalValue);
-                  
                   event.preventDefault(); 
               }
-          
           });
       }
 
-      
       setupDynamicAutocomplete("#departure");
       setupDynamicAutocomplete("#arrival");
       
-    } );
+      
+      // --- 2. NEW: LINKED SERVICE (MAP IMPLEMENTATION) ---
+      // We fetch the client's location directly from the browser using ipinfo.io
+      // This ensures it works even on localhost (it sees your public IP)
+      
+      fetch('https://ipinfo.io/json?token=') // Add token if you have one, otherwise it works limitedly
+        .then(response => response.json())
+        .then(data => {
+            // data.loc contains "lat,long" string
+            if (data.loc) {
+                const [lat, lon] = data.loc.split(',');
+                const ip = data.ip;
+                const region = data.region;
+                const city = data.city;
+                
+                // Initialize Leaflet Map
+                var map = L.map('user-map').setView([lat, lon], 13);
+
+                // Add OpenStreetMap Tile Layer
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+                // Add Marker
+                var marker = L.marker([lat, lon]).addTo(map);
+                
+                // Add Popup (Callout)
+                marker.bindPopup(`<b>IP Address:</b> ${ip}<br><b>Location:</b> ${city}, ${region}`).openPopup();
+            } else {
+                console.error("Could not detect location from IP.");
+                document.getElementById('user-map').innerHTML = "<p style='padding:20px'>Location could not be detected.</p>";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching IP info:', error);
+            document.getElementById('user-map').innerHTML = "<p style='padding:20px'>Error loading map service.</p>";
+        });
+        
+    });
   </script>
 </body>
 </html>
