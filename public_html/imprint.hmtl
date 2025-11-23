@@ -5,6 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Imprint - SkyBook</title>
   <link rel="stylesheet" href="style.css">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+
+  <style>
+      #user-map {
+          height: 350px;
+          width: 100%;
+          border-radius: 8px;
+          margin-top: 15px;
+          margin-bottom: 30px;
+          border: 1px solid #ddd;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          z-index: 1;
+      }
+      .image-gallery {
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          flex-wrap: wrap;
+          margin-top: 20px;
+      }
+      .gallery-img {
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          object-fit: cover;
+      }
+  </style>
 </head>
 <body>
   <header>
@@ -15,12 +44,14 @@
     <nav>
       <ul>
         <li><a href="index.php">Home</a></li>
-        <li><a href="imprint.hmtl" class="active">Imprint</a></li>
+        <li><a href="flight.php">Flights</a></li>
+        <li><a href="login.php">Login</a></li>
+        <li><a href="imprint.html" class="active">Imprint</a></li>
       </ul>
     </nav>
   </header>
 
-  <main>
+  <main style="max-width: 1200px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
     <h1>Imprint & Disclaimer</h1>
     <p>Contact: do not touch, it's dangerous</p>
 
@@ -33,19 +64,63 @@
       For each external link existing on this website, we initially have checked that the target page does not contain contents which is illegal wrt. German jurisdiction.
       However, as we have no influence on such contents, this may change without our notice. Therefore we deny any responsibility for the websites referenced through our external links from here.
     </p>
-    <p>No information conflicting with GDPR is stored in the server.
+    <p>No information conflicting with GDPR is stored in the server.</p>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+    <h2 style="color: #ff3300;">User Location Service</h2>
+    <p>As part of our linked services demonstration, we display your current approximate region based on your IP address below:</p>
+    <div id="user-map"></div>
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
     <div> 
-      Travel with us to discover beautiful destinations around the world! <p>
-      </div>
-    <div class="image-gallery"></div>
-    <img src="images/4e64b2b4-51a2-4098-95d7-86acfe4e36c5.JPG" alt="Mountain Lake" style="width:100%;max-width:400px;max-height: 450px;">
-    <img src="images/scout-promotion.jpg" alt="Beautiful Destination" style="width:100%;max-width:550px;max-height: 450px;">
-    <img src="images/IMG_1716.JPG" alt="City Skyline" style="width:100%;max-width:400px;max-height: 450px;">
+      <p style="font-weight: bold; font-size: 1.2em;">Travel with us to discover beautiful destinations around the world!</p>
+    </div>
+    
+    <div class="image-gallery">
+        <img src="images/4e64b2b4-51a2-4098-95d7-86acfe4e36c5.JPG" alt="Mountain Lake" class="gallery-img" style="width:100%;max-width:350px;height: 250px;">
+        <img src="images/scout-promotion.jpg" alt="Beautiful Destination" class="gallery-img" style="width:100%;max-width:350px;height: 250px;">
+        <img src="images/IMG_1716.JPG" alt="City Skyline" class="gallery-img" style="width:100%;max-width:350px;height: 250px;">
     </div>
   </main>
 
   <footer>
     <p>&copy; 2025 SkyBook</p>
   </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+  
+  <script>
+      fetch('https://ipinfo.io/json?token=') 
+        .then(response => response.json())
+        .then(data => {
+            if (data.loc) {
+                const [lat, lon] = data.loc.split(',');
+                const ip = data.ip;
+                const region = data.region;
+                const city = data.city;
+                const country = data.country;
+                
+                var map = L.map('user-map').setView([lat, lon], 13);
+
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+                var marker = L.marker([lat, lon]).addTo(map);
+                
+                marker.bindPopup(`<b>Your IP:</b> ${ip}<br><b>Location:</b> ${city}, ${region} (${country})`).openPopup();
+            } else {
+                console.error("Could not detect location.");
+                document.getElementById('user-map').innerHTML = "<p style='padding:20px; color:red;'>Location could not be detected.</p>";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching IP info:', error);
+            document.getElementById('user-map').innerHTML = "<p style='padding:20px; color:red;'>Error loading map service.</p>";
+        });
+  </script>
 </body>
 </html>
