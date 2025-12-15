@@ -14,7 +14,7 @@ if ($conn->connect_error) {
 
 $message = "";
 
-// GESTIONE LOGIN
+// LOGIN
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'login') {
   
   $user_id_input = $_POST['username']; 
@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
   $stmt->close();
 }
 
-// Messaggi di ritorno dalla registrazione
+// Return messages from registration
 if (isset($_GET['msg'])) {
     $cls = ($_GET['status'] === 'success') ? 'success' : 'error';
     $message = "<p class='$cls'>" . htmlspecialchars($_GET['msg']) . "</p>";
